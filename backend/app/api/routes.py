@@ -104,7 +104,10 @@ async def run_live_browser_audit(audit_id: str, url: str, audit_type: AuditType)
 
         # Progress update callback
         async def on_status_change(new_status: str, step_counter: int, current_url: str):
-            AUDITS_DB[audit_id].status = AuditStatus(new_status)
+            if new_status != "Complete":
+                AUDITS_DB[audit_id].status = AuditStatus(new_status)
+            else:
+                AUDITS_DB[audit_id].status = AuditStatus.ANALYZING
             LIVE_STEPS_DB[audit_id] = list(agent.steps)
 
         # Step 2: Controlled browser navigation

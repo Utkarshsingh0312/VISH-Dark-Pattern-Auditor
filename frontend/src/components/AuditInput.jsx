@@ -76,6 +76,57 @@ export default function AuditInput({ onStartAudit, onStartDemo, isLoading }) {
           <Play size={13} fill="currentColor" /> Honest / One-Click Flow (Target 6)
         </button>
       </div>
+
+      <div style={{ marginTop: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          Live Test Fixtures:
+        </span>
+        <button
+          type="button"
+          onClick={() => setUrl('http://127.0.0.1:8000/api/mock_sites/hidden_cost_test.html')}
+          className="badge badge-coral"
+          style={{ cursor: 'pointer', border: '1px solid rgba(255, 87, 51, 0.4)', background: 'var(--accent-coral-glow)' }}
+          title="Audit Hidden Cost ($4.99 fee at review)"
+        >
+          Hidden Cost (12 pts)
+        </button>
+        <button
+          type="button"
+          onClick={() => setUrl('http://127.0.0.1:8000/api/mock_sites/forced_reauth_test.html')}
+          className="badge badge-amber"
+          style={{ cursor: 'pointer', border: '1px solid rgba(245, 158, 11, 0.4)' }}
+          title="Audit Forced Re-auth (Password re-entry after total)"
+        >
+          Forced Re-auth (8 pts)
+        </button>
+        <button
+          type="button"
+          onClick={() => setUrl('http://127.0.0.1:8000/api/mock_sites/confirmshaming_test.html')}
+          className="badge badge-blue"
+          style={{ cursor: 'pointer', border: '1px solid rgba(56, 189, 248, 0.4)' }}
+          title="Audit Confirmshaming (Coercive decline language)"
+        >
+          Confirmshaming (7 pts)
+        </button>
+        <button
+          type="button"
+          onClick={() => setUrl('http://127.0.0.1:8000/api/mock_sites/roach_motel_test.html')}
+          className="badge badge-rose"
+          style={{ cursor: 'pointer', border: '1px solid rgba(244, 63, 94, 0.4)' }}
+          title="Audit Roach Motel (1-click signup vs phone/mail cancel)"
+        >
+          Roach Motel (10 pts)
+        </button>
+        <button
+          type="button"
+          onClick={() => setUrl('https://www.wikipedia.org')}
+          className="badge badge-emerald"
+          style={{ cursor: 'pointer', border: '1px solid rgba(16, 185, 129, 0.4)' }}
+          title="Audit Clean Site Flow (Wikipedia)"
+        >
+          Wikipedia (0 pts)
+        </button>
+      </div>
     </div>
   );
 }

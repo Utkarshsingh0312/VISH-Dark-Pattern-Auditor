@@ -85,6 +85,7 @@ class VisionAnalyzer:
         self.confidence_threshold = confidence_threshold or settings.GEMINI_CONFIDENCE_THRESHOLD
         self.has_real_ai = bool(self.api_key and len(self.api_key.strip()) > 5)
 
+        self._exhausted_models = set()
         self._client = None
         if self.has_real_ai:
             try:
@@ -152,10 +153,16 @@ class VisionAnalyzer:
         import asyncio
         loop = asyncio.get_running_loop()
         
-        candidate_models = [self.model_name]
-        for fallback in ["gemini-3.6-flash", "gemini-3.5-flash"]:
-            if fallback not in candidate_models:
-                candidate_models.append(fallback)
+        all_candidates = [self.model_name]
+        for fallback in ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.7-flash", "gemini-2.5-pro"]:
+            if fallback not in all_candidates:
+                all_candidates.append(fallback)
+
+        candidate_models = [m for m in all_candidates if m not in self._exhausted_models]
+        if not candidate_models:
+            # If all were marked exhausted, reset to allow retry
+            self._exhausted_models.clear()
+            candidate_models = list(all_candidates)
 
         # Call generate_content with retry and fallback across supported models
         def _invoke_gemini():
@@ -182,6 +189,7 @@ class VisionAnalyzer:
                             time.sleep(wait_time)
                             continue
                         elif any(code in err_msg for code in ["429", "404", "RESOURCE_EXHAUSTED", "NOT_FOUND"]):
+                            self._exhausted_models.add(current_model)
                             logger.warning(f"[VisionAnalyzer] Model {current_model} unavailable ({err_msg[:60]}), checking next candidate model...")
                             break
                         raise call_err
