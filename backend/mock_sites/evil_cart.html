@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deceptive Store - Dark Pattern Flow</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 40px; display: flex; justify-content: center; }
+    .card { background: #1e293b; border-radius: 12px; padding: 32px; width: 100%; max-width: 550px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #334155; }
+    h1 { color: #f43f5e; font-size: 24px; margin-top: 0; }
+    .timer { background: #881337; color: #fecdd3; padding: 10px 16px; border-radius: 6px; font-weight: bold; margin-bottom: 20px; display: inline-block; }
+    .item-row { display: flex; justify-content: space-between; border-bottom: 1px solid #334155; padding: 12px 0; font-size: 16px; }
+    .btn-primary { background: #f43f5e; color: white; border: none; padding: 14px 24px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; text-transform: uppercase; }
+    .btn-secondary { background: transparent; color: #94a3b8; border: 1px solid #475569; padding: 10px; width: 100%; border-radius: 8px; margin-top: 10px; cursor: pointer; font-size: 13px; text-decoration: underline; }
+    .badge { background: #0284c7; color: white; font-size: 11px; padding: 3px 8px; border-radius: 4px; }
+    .addon-box { background: #0f172a; border: 1px dashed #e11d48; padding: 16px; border-radius: 8px; margin: 20px 0; }
+    .hidden-fee { color: #fbbf24; font-weight: bold; }
+    .step { display: none; }
+    .step.active { display: block; }
+    input[type="text"], input[type="password"] { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <!-- STEP 1: Product Selection with False Urgency & Preselected Add-on -->
+    <div id="step-1" class="step active">
+      <div class="timer">⚡ High Demand! Reserved for <span id="countdown">04:59</span></div>
+      <h1>Ultra Pro Noise-Canceling Headphones</h1>
+      <div class="item-row">
+        <span>Headphones (Black)</span>
+        <strong>$79.00</strong>
+      </div>
+      
+      <div class="addon-box">
+        <label style="cursor: pointer; display: flex; align-items: center; gap: 10px;">
+          <input type="checkbox" id="addon-check" checked>
+          <div>
+            <strong>Add $2.99 VIP Express Package Protection</strong> <span class="badge">RECOMMENDED</span>
+            <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Covers theft, damage, and priority courier dispatch.</div>
+          </div>
+        </label>
+      </div>
+
+      <button id="btn-to-step-2" class="btn-primary" onclick="goToStep(2)">Proceed to Delivery →</button>
+    </div>
+
+    <!-- STEP 2: Delivery & Confirmshaming Opt-out -->
+    <div id="step-2" class="step">
+      <h1>Step 2: Shipping & Member Discount</h1>
+      <p style="color: #94a3b8; font-size: 14px;">Enter your details to claim your instant 15% discount code.</p>
+      
+      <input type="text" placeholder="Full Name" value="Alex Smith" id="input-name">
+      <input type="text" placeholder="Shipping Address" value="123 Market St, San Francisco, CA" id="input-addr">
+
+      <div style="background: #1e1b4b; border: 1px solid #6366f1; padding: 16px; border-radius: 8px; margin: 16px 0;">
+        <strong style="color: #a5b4fc;">Claim 2-Year Extended Care Warranty for $9/yr</strong>
+        <p style="font-size: 12px; color: #c7d2fe;">Protect against drops, water damage, and battery failure.</p>
+      </div>
+
+      <button class="btn-primary" onclick="goToStep(3)">Accept Discount & Continue →</button>
+      <button class="btn-secondary" id="confirmshaming-btn" onclick="goToStep(3)">No thanks, I like paying full price and risking broken gear</button>
+    </div>
+
+    <!-- STEP 3: Checkout Summary with Hidden Fees & Forced Re-auth -->
+    <div id="step-3" class="step">
+      <h1>Step 3: Final Payment Review</h1>
+      <div class="item-row">
+        <span>Headphones</span>
+        <span>$79.00</span>
+      </div>
+      <div class="item-row">
+        <span>VIP Package Protection (Pre-selected)</span>
+        <span>$2.99</span>
+      </div>
+      <div class="item-row hidden-fee" style="background: #451a03; padding: 10px; border-radius: 6px; margin: 8px 0;">
+        <span>+ mandatory Order Processing & Platform Service Fee</span>
+        <span>$4.99</span>
+      </div>
+      <div class="item-row" style="font-size: 18px; font-weight: bold; border-top: 2px solid #f43f5e; padding-top: 12px;">
+        <span>Total Due:</span>
+        <span style="color: #f43f5e;">$86.98</span>
+      </div>
+
+      <!-- Forced Re-auth Security Friction Wall -->
+      <div style="margin-top: 20px; background: #0f172a; padding: 16px; border-radius: 8px; border: 1px solid #475569;">
+        <label style="font-size: 13px; color: #cbd5e1; font-weight: bold;">Security Verification Required:</label>
+        <p style="font-size: 12px; color: #94a3b8; margin: 4px 0 10px 0;">Re-enter account password to authorize total charge.</p>
+        <input type="password" placeholder="Account Password" id="pwd-input">
+      </div>
+
+      <!-- Roach Motel Cancellation Note -->
+      <p style="font-size: 11px; color: #64748b; margin-top: 16px; text-align: center;">
+        Subscription/Order auto-renews. To cancel membership after purchase, call support at 1-800-DARK-PAT (Mon-Fri 9am-5pm EST) and confirm 3 steps.
+      </p>
+
+      <button id="btn-final-pay" class="btn-primary" onclick="alert('Demo Stop: Agent stops before submitting final payment!')">Complete Order ($86.98)</button>
+    </div>
+  </div>
+
+  <script>
+    function goToStep(stepNum) {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById('step-' + stepNum).classList.add('active');
+    }
+  </script>
+</body>
+</html>
