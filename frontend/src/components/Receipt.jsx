@@ -2,6 +2,7 @@ import React from 'react';
 import ReceiptItem from './ReceiptItem';
 import { FileText, CheckCircle2, Shield, Camera, AlertOctagon, Sparkles } from 'lucide-react';
 import { formatScore, formatCurrency, formatTime } from '../utils/formatters';
+import { getScreenshotUrl } from '../services/api';
 
 export default function Receipt({ result }) {
   const {
@@ -76,7 +77,7 @@ export default function Receipt({ result }) {
               <div key={st.step_number} style={{ backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 'var(--radius-sm)', padding: '0.4rem', border: '1px solid var(--border-subtle)' }}>
                 {st.screenshot_url ? (
                   <img
-                    src={st.screenshot_url}
+                    src={getScreenshotUrl(st.screenshot_url)}
                     alt={`Step ${st.step_number}`}
                     style={{ width: '100%', height: '85px', objectFit: 'cover', borderRadius: '3px', display: 'block', marginBottom: '0.35rem' }}
                   />

@@ -33,4 +33,4 @@ WORKDIR /app/backend
 EXPOSE 8000
 
 # Start command listening on 0.0.0.0 and dynamic $PORT
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["python", "run_server.py"]

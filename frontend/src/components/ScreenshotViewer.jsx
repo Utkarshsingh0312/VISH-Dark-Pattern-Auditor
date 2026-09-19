@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Camera, Eye, Scan, Monitor, ShieldCheck, AlertOctagon, CheckCircle2 } from 'lucide-react';
+import { getScreenshotUrl } from '../services/api';
 
 export default function ScreenshotViewer({ 
   screenshotUrl, 
@@ -113,7 +114,7 @@ export default function ScreenshotViewer({
         {screenshotUrl && !imgError ? (
           <div style={{ width: '100%', height: '100%', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <img
-              src={screenshotUrl}
+              src={getScreenshotUrl(screenshotUrl)}
               alt={`Audit Viewport Step ${stepNumber}`}
               onError={() => setImgError(true)}
               style={{

@@ -2,7 +2,22 @@
  * VISH API Client Service
  */
 
-const API_BASE = '/api';
+const RAW_BASE = import.meta.env.VITE_API_BASE_URL || '';
+export const BACKEND_BASE = RAW_BASE ? RAW_BASE.replace(/\/$/, '') : '';
+export const API_BASE = BACKEND_BASE ? `${BACKEND_BASE}/api` : '/api';
+
+/**
+ * Resolves screenshot URLs: if URL is relative (/api/screenshots/...),
+ * prefixes it with BACKEND_BASE so deployed frontend can fetch from deployed backend.
+ */
+export function getScreenshotUrl(url) {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (BACKEND_BASE && url.startsWith('/')) {
+    return `${BACKEND_BASE}${url}`;
+  }
+  return url;
+}
 
 export async function checkHealth() {
   const res = await fetch(`${API_BASE}/health`);

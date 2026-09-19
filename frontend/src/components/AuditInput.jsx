@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Play, Sparkles, Globe, ArrowRight } from 'lucide-react';
+import { BACKEND_BASE } from '../services/api';
 
 export default function AuditInput({ onStartAudit, onStartDemo, isLoading }) {
   const [url, setUrl] = useState('');
+  const fixtureBase = BACKEND_BASE || 'http://127.0.0.1:8000';
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -83,7 +85,7 @@ export default function AuditInput({ onStartAudit, onStartDemo, isLoading }) {
         </span>
         <button
           type="button"
-          onClick={() => setUrl('http://127.0.0.1:8000/api/mock_sites/hidden_cost_test.html')}
+          onClick={() => setUrl(`${fixtureBase}/api/mock_sites/hidden_cost_test.html`)}
           className="badge badge-coral"
           style={{ cursor: 'pointer', border: '1px solid rgba(255, 87, 51, 0.4)', background: 'var(--accent-coral-glow)' }}
           title="Audit Hidden Cost ($4.99 fee at review)"
@@ -92,7 +94,7 @@ export default function AuditInput({ onStartAudit, onStartDemo, isLoading }) {
         </button>
         <button
           type="button"
-          onClick={() => setUrl('http://127.0.0.1:8000/api/mock_sites/forced_reauth_test.html')}
+          onClick={() => setUrl(`${fixtureBase}/api/mock_sites/forced_reauth_test.html`)}
           className="badge badge-amber"
           style={{ cursor: 'pointer', border: '1px solid rgba(245, 158, 11, 0.4)' }}
           title="Audit Forced Re-auth (Password re-entry after total)"
@@ -101,7 +103,7 @@ export default function AuditInput({ onStartAudit, onStartDemo, isLoading }) {
         </button>
         <button
           type="button"
-          onClick={() => setUrl('http://127.0.0.1:8000/api/mock_sites/confirmshaming_test.html')}
+          onClick={() => setUrl(`${fixtureBase}/api/mock_sites/confirmshaming_test.html`)}
           className="badge badge-blue"
           style={{ cursor: 'pointer', border: '1px solid rgba(56, 189, 248, 0.4)' }}
           title="Audit Confirmshaming (Coercive decline language)"
@@ -110,7 +112,7 @@ export default function AuditInput({ onStartAudit, onStartDemo, isLoading }) {
         </button>
         <button
           type="button"
-          onClick={() => setUrl('http://127.0.0.1:8000/api/mock_sites/roach_motel_test.html')}
+          onClick={() => setUrl(`${fixtureBase}/api/mock_sites/roach_motel_test.html`)}
           className="badge badge-rose"
           style={{ cursor: 'pointer', border: '1px solid rgba(244, 63, 94, 0.4)' }}
           title="Audit Roach Motel (1-click signup vs phone/mail cancel)"

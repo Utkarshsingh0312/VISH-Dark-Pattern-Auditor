@@ -336,3 +336,28 @@ def test_gemini_malformed_response_resilience():
     assert analyzer.parse_gemini_response("This is not JSON at all") == []
     assert analyzer.parse_gemini_response("{detections: broken syntax") == []
     assert analyzer.parse_gemini_response('{"detections": []}') == []
+
+def test_cors_vercel_and_local_origins():
+    """Verify CORS middleware allows Vercel origins (*.vercel.app) and local dev origins."""
+    for origin in [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://vish-frontend.vercel.app",
+        "https://vish-dark-pattern-auditor.vercel.app",
+        "https://preview-123.vercel.app"
+    ]:
+        res = client.get("/health", headers={"Origin": origin})
+        assert res.status_code == 200
+        assert res.headers.get("access-control-allow-origin") == origin
+
+        preflight = client.options(
+            "/api/audits",
+            headers={
+                "Origin": origin,
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "Content-Type",
+            }
+        )
+        assert preflight.status_code == 200
+        assert preflight.headers.get("access-control-allow-origin") == origin
+        assert preflight.headers.get("access-control-allow-credentials") == "true"
