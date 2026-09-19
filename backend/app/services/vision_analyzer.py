@@ -152,16 +152,25 @@ class VisionAnalyzer:
         import asyncio
         loop = asyncio.get_running_loop()
         
+        # Call generate_content with retry on temporary 503 high-demand spikes
         def _invoke_gemini():
-            return self._client.models.generate_content(
-                model=self.model_name,
-                contents=user_content,
-                config=types.GenerateContentConfig(
-                    system_instruction=VISH_VISION_SYSTEM_PROMPT,
-                    temperature=0.1,
-                    response_mime_type="application/json"
-                )
-            )
+            import time
+            for attempt in range(3):
+                try:
+                    return self._client.models.generate_content(
+                        model=self.model_name,
+                        contents=user_content,
+                        config=types.GenerateContentConfig(
+                            system_instruction=VISH_VISION_SYSTEM_PROMPT,
+                            temperature=0.1,
+                            response_mime_type="application/json"
+                        )
+                    )
+                except Exception as call_err:
+                    if "503" in str(call_err) and attempt < 2:
+                        time.sleep(1.5 * (attempt + 1))
+                        continue
+                    raise call_err
 
         response = await loop.run_in_executor(None, _invoke_gemini)
         raw_text = response.text or ""
