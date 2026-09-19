@@ -24,6 +24,14 @@ def test_health_check():
     assert "VISH" in data["service"]
     assert len(data["supported_categories"]) == 4
 
+def test_root_health_check():
+    """Verify lightweight root /health endpoint for Railway / orchestrators."""
+    response = client.get("/health")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "healthy"
+    assert "VISH" in data["service"]
+
 def test_friction_engine_scale_limit():
     """Verify FrictionEngine caps maximum score at 45 per PPT rubric."""
     detections = [

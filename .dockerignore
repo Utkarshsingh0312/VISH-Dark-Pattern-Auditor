@@ -1,0 +1,25 @@
+# Git & system
+.git
+.github
+.gitignore
+
+# Environment files with secrets (NEVER PACK INTO DOCKER)
+.env
+.env.*
+*.env
+**/.env
+
+# Python cache & virtualenvs
+__pycache__/
+*.py[cod]
+.pytest_cache/
+venv/
+.venv/
+
+# Frontend (Backend-only deployment on Railway)
+frontend/
+node_modules/
+
+# Local artifacts & temp files
+.system_generated/
+scratch/

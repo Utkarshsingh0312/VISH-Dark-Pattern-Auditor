@@ -7,11 +7,13 @@ if sys.platform == "win32":
     except Exception:
         pass
 
+import os
 import uvicorn
-from app.main import app
 
 def run():
-    uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info", loop="asyncio")
+    port = int(os.environ.get("PORT", 8000))
+    host = os.environ.get("HOST", "0.0.0.0")
+    uvicorn.run("app.main:app", host=host, port=port, log_level="info", loop="asyncio")
 
 if __name__ == "__main__":
     run()

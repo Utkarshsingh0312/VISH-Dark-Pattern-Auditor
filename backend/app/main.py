@@ -26,10 +26,16 @@ app = FastAPI(
     version="1.1.0-step2"
 )
 
-# Configure CORS
+# Configure CORS (supports future Vercel origin via CORS_ORIGINS environment variable)
+cors_origins_raw = getattr(settings, "CORS_ORIGINS", "*")
+if cors_origins_raw and cors_origins_raw != "*":
+    allowed_origins = [orig.strip() for orig in cors_origins_raw.split(",") if orig.strip()]
+else:
+    allowed_origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -44,15 +50,27 @@ if mock_sites_path.exists():
 # Include API Router
 app.include_router(api_router, prefix=settings.API_PREFIX)
 
+@app.get("/health", tags=["System"])
+def health():
+    """Lightweight healthcheck endpoint for Railway and container orchestrators."""
+    return {
+        "status": "healthy",
+        "service": settings.PROJECT_NAME,
+        "version": "1.1.0"
+    }
+
 @app.get("/")
 def root():
     return {
         "message": "Welcome to VISH — Dark Pattern Auditor API",
         "tagline": settings.TAGLINE,
         "docs_url": "/docs",
-        "health_url": f"{settings.API_PREFIX}/health"
+        "health_url": "/health"
     }
 
 if __name__ == "__main__":
+    import os
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", getattr(settings, "PORT", 8000)))
+    host = os.environ.get("HOST", getattr(settings, "HOST", "0.0.0.0"))
+    uvicorn.run("app.main:app", host=host, port=port, reload=False)

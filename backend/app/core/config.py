@@ -8,10 +8,13 @@ class Settings(BaseSettings):
     API_PREFIX: str = "/api"
     BACKEND_URL: str = "http://localhost:8000"
     FRONTEND_URL: str = "http://localhost:5173"
+    PORT: int = 8000
+    HOST: str = "0.0.0.0"
+    CORS_ORIGINS: str = "*"
 
     # Gemini Vision AI Settings
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-2.5-flash"
+    GEMINI_MODEL: str = "gemini-flash-latest"
     GEMINI_CONFIDENCE_THRESHOLD: float = 0.80
     GEMINI_TIMEOUT_SEC: float = 25.0
 
