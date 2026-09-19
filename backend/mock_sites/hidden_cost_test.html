@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apex Coffee Subscription - Checkout</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0b0f19; color: #f8fafc; margin: 0; padding: 40px; display: flex; justify-content: center; }
+    .checkout-card { background: #151d2f; border: 1px solid #23324d; border-radius: 12px; padding: 32px; width: 100%; max-width: 540px; box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
+    h1 { font-size: 22px; color: #f8fafc; margin-top: 0; margin-bottom: 20px; font-weight: 700; }
+    .order-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #23324d; font-size: 15px; }
+    .hidden-fee-box { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 14px; margin: 16px 0; }
+    .fee-row { display: flex; justify-content: space-between; color: #fca5a5; font-size: 14px; font-weight: 600; }
+    .disclosure { font-size: 12px; color: #94a3b8; margin-top: 6px; line-height: 1.4; }
+    .total-row { display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; padding: 14px 0 20px 0; border-top: 2px solid #334155; margin-top: 10px; color: #f8fafc; }
+    .total-amount { color: #f43f5e; }
+    .btn-review { background: #2563eb; color: white; border: none; padding: 14px 20px; width: 100%; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="checkout-card">
+    <h1>Order Summary & Final Confirmation</h1>
+    
+    <div class="order-item">
+      <span>Artisan Roast Blend (Monthly)</span>
+      <span>$19.99</span>
+    </div>
+    
+    <div class="order-item">
+      <span>Standard Ground Delivery</span>
+      <span style="color: #10b981;">Free</span>
+    </div>
+
+    <!-- The Intentionally Injected VISH Dark Pattern: Hidden Cost -->
+    <div class="hidden-fee-box">
+      <div class="fee-row">
+        <span>+ Mandatory Platform Service Fee:</span>
+        <span>$4.99</span>
+      </div>
+      <div class="disclosure">
+        * $4.99 fee shown only at final confirmation. This mandatory processing surcharge was undisclosed during initial $19.99 selection.
+      </div>
+    </div>
+
+    <div class="total-row">
+      <span>Final Total Due:</span>
+      <span class="total-amount">$24.98</span>
+    </div>
+
+    <button class="btn-review" id="review-btn">Continue to Payment Method →</button>
+  </div>
+</body>
+</html>

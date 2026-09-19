@@ -35,8 +35,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount Static Files for Playwright Screenshots
+# Mount Static Files for Playwright Screenshots and Mock Test Sites
 app.mount("/api/screenshots", StaticFiles(directory=str(screenshots_path)), name="screenshots")
+mock_sites_path = Path(__file__).resolve().parent.parent / "mock_sites"
+if mock_sites_path.exists():
+    app.mount("/api/mock_sites", StaticFiles(directory=str(mock_sites_path)), name="mock_sites")
 
 # Include API Router
 app.include_router(api_router, prefix=settings.API_PREFIX)

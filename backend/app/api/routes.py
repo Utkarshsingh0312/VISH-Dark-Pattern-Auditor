@@ -116,9 +116,11 @@ async def run_live_browser_audit(audit_id: str, url: str, audit_type: AuditType)
         detections: List[Detection] = []
 
         try:
+            seen_screenshots = set()
             for s in steps:
                 AUDITS_DB[audit_id].status = AuditStatus.ANALYZING
-                if s.screenshot:
+                if s.screenshot and s.screenshot not in seen_screenshots:
+                    seen_screenshots.add(s.screenshot)
                     logger.info(f"[{audit_id}] Analyzing screenshot for Step #{s.step_number} ({s.screenshot})")
                     step_dets = await vision_analyzer.analyze_screenshot(
                         screenshot_path=s.screenshot,

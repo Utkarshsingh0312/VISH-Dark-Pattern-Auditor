@@ -89,6 +89,7 @@ class BrowserAgent:
         "subscribe & pay",
         "start paid plan",
         "pay ",
+        "payment",
         "checkout",
         "purchase",
         "buy"
@@ -474,7 +475,11 @@ class BrowserAgent:
     ) -> AuditStep:
         """Helper to capture screenshot and append a new AuditStep."""
         self.step_counter += 1
-        filepath, web_url = await self.capture_screenshot(self.step_counter)
+        if stopped_for_safety and self.steps and self.steps[-1].url == url:
+            filepath = self.steps[-1].screenshot
+            web_url = self.steps[-1].screenshot_url
+        else:
+            filepath, web_url = await self.capture_screenshot(self.step_counter)
 
         step = AuditStep(
             step_number=self.step_counter,

@@ -152,25 +152,41 @@ class VisionAnalyzer:
         import asyncio
         loop = asyncio.get_running_loop()
         
-        # Call generate_content with retry on temporary 503 high-demand spikes
+        candidate_models = [self.model_name]
+        for fallback in ["gemini-3.6-flash", "gemini-3.5-flash"]:
+            if fallback not in candidate_models:
+                candidate_models.append(fallback)
+
+        # Call generate_content with retry and fallback across supported models
         def _invoke_gemini():
             import time
-            for attempt in range(3):
-                try:
-                    return self._client.models.generate_content(
-                        model=self.model_name,
-                        contents=user_content,
-                        config=types.GenerateContentConfig(
-                            system_instruction=VISH_VISION_SYSTEM_PROMPT,
-                            temperature=0.1,
-                            response_mime_type="application/json"
+            last_err = None
+            for current_model in candidate_models:
+                for attempt in range(3):
+                    try:
+                        return self._client.models.generate_content(
+                            model=current_model,
+                            contents=user_content,
+                            config=types.GenerateContentConfig(
+                                system_instruction=VISH_VISION_SYSTEM_PROMPT,
+                                temperature=0.1,
+                                response_mime_type="application/json"
+                            )
                         )
-                    )
-                except Exception as call_err:
-                    if "503" in str(call_err) and attempt < 2:
-                        time.sleep(1.5 * (attempt + 1))
-                        continue
-                    raise call_err
+                    except Exception as call_err:
+                        last_err = call_err
+                        err_msg = str(call_err)
+                        if ("503" in err_msg or "UNAVAILABLE" in err_msg) and attempt < 2:
+                            wait_time = 2.0 * (attempt + 1)
+                            logger.warning(f"[VisionAnalyzer] Gemini ({current_model}) transient 503 spike, retrying in {wait_time}s...")
+                            time.sleep(wait_time)
+                            continue
+                        elif any(code in err_msg for code in ["429", "404", "RESOURCE_EXHAUSTED", "NOT_FOUND"]):
+                            logger.warning(f"[VisionAnalyzer] Model {current_model} unavailable ({err_msg[:60]}), checking next candidate model...")
+                            break
+                        raise call_err
+            if last_err:
+                raise last_err
 
         response = await loop.run_in_executor(None, _invoke_gemini)
         raw_text = response.text or ""
