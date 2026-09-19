@@ -266,14 +266,14 @@ class BrowserAgent:
                 if not safe_element:
                     # Scroll down to observe progressive disclosure
                     await update_status("Navigating")
-                    await self.scroll(direction="down", distance_px=600)
-                    await asyncio.sleep(self.pacing_delay_sec)
-                    await update_status("Capturing screen")
-                    await self._record_step(
-                        action="Page Scroll Inspection",
-                        url=self._page.url,
-                        title=await self._page.title()
-                    )
+                    scroll_info = await self.scroll(direction="down", distance_px=600)
+                    if scroll_info.get("scrolled", True):
+                        await update_status("Capturing screen")
+                        await self._record_step(
+                            action="Page Scroll Inspection",
+                            url=self._page.url,
+                            title=await self._page.title()
+                        )
                     break
 
                 # 3. Perform Safe Interaction
@@ -441,9 +441,15 @@ class BrowserAgent:
             return {}
         
         delta = distance_px if direction == "down" else -distance_px
-        await self._page.evaluate(f"window.scrollBy({{ top: {delta}, behavior: 'smooth' }});")
-        await asyncio.sleep(self.pacing_delay_sec)
-        return {"action": "scroll", "direction": direction, "distance": distance_px}
+        try:
+            prev_y = await self._page.evaluate("window.scrollY || window.pageYOffset || 0")
+            await self._page.evaluate(f"window.scrollBy({{ top: {delta}, behavior: 'smooth' }});")
+            await asyncio.sleep(self.pacing_delay_sec)
+            new_y = await self._page.evaluate("window.scrollY || window.pageYOffset || 0")
+            scrolled = abs(new_y - prev_y) > 5
+        except Exception:
+            scrolled = False
+        return {"action": "scroll", "direction": direction, "distance": distance_px, "scrolled": scrolled}
 
     async def capture_screenshot(self, step_number: int) -> Tuple[str, str]:
         """

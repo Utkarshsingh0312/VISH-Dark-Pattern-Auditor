@@ -30,16 +30,25 @@ class ReceiptGenerator:
         Calculates final friction score using FrictionEngine and assembles
         the complete itemized compliance receipt.
         """
-        score, est_cost, est_minutes = FrictionEngine.calculate_score(detections)
+        # Deduplicate identical detections (same category and matching evidence across frames)
+        unique_detections: List[Detection] = []
+        seen_evidence = set()
+        for d in detections:
+            norm_key = (d.pattern_name.lower().strip(), d.evidence.lower().strip())
+            if norm_key not in seen_evidence:
+                seen_evidence.add(norm_key)
+                unique_detections.append(d)
+
+        score, est_cost, est_minutes = FrictionEngine.calculate_score(unique_detections)
         
         # Sort detections chronologically by step number
-        sorted_detections = sorted(detections, key=lambda d: d.step_number)
+        sorted_detections = sorted(unique_detections, key=lambda d: d.step_number)
 
         source_label = "Gemini Vision AI" if vision_source == "gemini_vision" else "Mock Analysis"
         summary = (
             f"VISH audited {len(steps)} steps on {url}. "
             f"Analysis Source: {source_label}. "
-            f"Detected {len(detections)} dark patterns contributing to a total Friction Score of {score}/45. "
+            f"Detected {len(unique_detections)} dark patterns contributing to a total Friction Score of {score}/45. "
             f"Estimated consumer friction: ${est_cost:.2f} extra cost, {est_minutes} extra minutes lost."
         )
 

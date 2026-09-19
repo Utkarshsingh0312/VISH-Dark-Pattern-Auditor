@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VISH Test - Roach Motel Flow</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0b0f19; color: #f8fafc; margin: 0; padding: 40px; display: flex; justify-content: center; }
+    .card { background: #151d2f; border: 1px solid #23324d; border-radius: 12px; padding: 32px; width: 100%; max-width: 600px; box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
+    h1 { font-size: 22px; color: #f8fafc; margin-top: 0; margin-bottom: 20px; font-weight: 700; }
+    .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .panel { background: #1e293b; border-radius: 8px; padding: 20px; border: 1px solid #334155; }
+    .panel.easy { border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.05); }
+    .panel.hard { border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05); }
+    .panel-title { font-weight: 700; font-size: 15px; margin-bottom: 8px; }
+    .easy .panel-title { color: #34d399; }
+    .hard .panel-title { color: #f87171; }
+    .panel-desc { font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+    .callout { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 14px; font-size: 13px; color: #fca5a5; line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Membership Terms & Subscription Policy</h1>
+    
+    <!-- The Intentionally Injected VISH Dark Pattern: Roach Motel Asymmetry -->
+    <div class="comparison-grid">
+      <div class="panel easy">
+        <div class="panel-title">Starting Membership (1-Click)</div>
+        <div class="panel-desc">
+          Instant 1-click signup. Immediate access granted with no verification delay.
+        </div>
+      </div>
+      <div class="panel hard">
+        <div class="panel-title">Cancelling Membership</div>
+        <div class="panel-desc">
+          Online cancellation is not supported. You must call phone support or mail physical letter.
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Cancellation Terms (Asymmetry):</strong> To cancel your active membership, online cancellation is disabled. Subscribers must place an international phone call to customer service during limited business hours (Monday 9 AM - 10 AM EST only), or send a notarized physical letter by certified post with 60 days advance notice.
+    </div>
+  </div>
+</body>
+</html>

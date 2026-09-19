@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VISH Test - Confirmshaming Flow</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0b0f19; color: #f8fafc; margin: 0; padding: 40px; display: flex; justify-content: center; }
+    .card { background: #151d2f; border: 1px solid #23324d; border-radius: 12px; padding: 36px; width: 100%; max-width: 540px; box-shadow: 0 12px 30px rgba(0,0,0,0.4); text-align: center; }
+    h1 { font-size: 24px; color: #f8fafc; margin-top: 0; margin-bottom: 12px; font-weight: 800; }
+    p.lead { color: #cbd5e1; font-size: 15px; line-height: 1.5; margin-bottom: 28px; }
+    .offer-badge { display: inline-block; background: rgba(16, 185, 129, 0.2); color: #34d399; font-weight: 700; font-size: 12px; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.4); margin-bottom: 16px; }
+    .btn-accept { background: #10b981; color: white; border: none; padding: 16px 24px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 16px; }
+    
+    /* The Intentionally Injected VISH Dark Pattern: Confirmshaming */
+    .btn-decline-shame { background: transparent; color: #94a3b8; border: none; padding: 10px; width: 100%; font-size: 13px; cursor: pointer; text-decoration: underline; }
+    .btn-decline-shame:hover { color: #f87171; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="offer-badge">SECURITY UPGRADE</div>
+    <h1>Protect Your Account Today</h1>
+    <p class="lead">
+      Enable advanced breach protection and 24/7 dark web identity monitoring for your account.
+    </p>
+
+    <button class="btn-accept" id="accept-btn">Yes, Protect My Account</button>
+    
+    <!-- Confirmshaming Opt-out Button -->
+    <button class="btn-decline-shame" id="decline-btn">
+      No thanks, I do not care about my account security and prefer risking identity theft
+    </button>
+  </div>
+</body>
+</html>
