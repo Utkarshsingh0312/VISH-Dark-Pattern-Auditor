@@ -2,7 +2,10 @@
  * VISH API Client Service
  */
 
-const RAW_BASE = import.meta.env.VITE_API_BASE_URL || '';
+const RAW_BASE = import.meta.env.VITE_API_BASE_URL || 
+  (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')
+    ? 'https://vish-dark-pattern-auditor-production.up.railway.app'
+    : '');
 export const BACKEND_BASE = RAW_BASE ? RAW_BASE.replace(/\/$/, '') : '';
 export const API_BASE = BACKEND_BASE ? `${BACKEND_BASE}/api` : '/api';
 
