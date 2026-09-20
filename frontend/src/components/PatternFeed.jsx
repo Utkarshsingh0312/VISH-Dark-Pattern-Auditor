@@ -21,7 +21,7 @@ export default function PatternFeed({ detections = [] }) {
             <CheckCircle size={36} color="var(--border-highlight)" style={{ margin: '0 auto 0.75rem' }} />
             <p style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>No patterns detected</p>
             <p style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>
-              Gemini Vision classifies screenshots against the 4 PPT categories (Hidden Cost, Forced Re-auth, Confirmshaming, Roach Motel).
+              Gemini Vision classifies screenshots against the 4 core manipulation categories (Hidden Cost, Forced Re-auth, Confirmshaming, Roach Motel).
             </p>
           </div>
         ) : (

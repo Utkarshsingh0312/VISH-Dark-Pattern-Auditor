@@ -30,7 +30,7 @@ export default function SafetyNotice() {
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
         <ShieldCheck size={22} color="var(--accent-blue)" />
         <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-          Safe Audit Architecture (PPT Safety Principles)
+          Safe Audit Architecture (Core Safety Principles)
         </h3>
         <span className="badge badge-blue" style={{ marginLeft: 'auto' }}>Guaranteed</span>
       </div>

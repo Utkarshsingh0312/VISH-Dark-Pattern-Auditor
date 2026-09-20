@@ -68,7 +68,7 @@ export default function AuditTypeSelector({ selectedType, onSelectType, testAcco
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <AlertCircle size={18} color="var(--accent-amber)" />
             <span style={{ fontSize: '0.85rem', color: '#FDE68A' }}>
-              <strong>Scope Notice (PPT):</strong> Cancellation flows require an owner-supplied test account — VISH never touches unowned live accounts.
+              <strong>Scope Notice:</strong> Cancellation flows require an owner-supplied test account — VISH never touches unowned live accounts.
             </span>
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text-primary)' }}>

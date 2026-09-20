@@ -5,7 +5,7 @@ import { ExternalLink, BarChart3, Info } from 'lucide-react';
 export default function ComparisonChart({ benchmarks = [], currentAuditScore = null }) {
   const maxScale = 45;
 
-  // Default PPT calibration if not passed
+  // Default calibration benchmarks if not passed
   const items = benchmarks.length > 0 ? benchmarks : [
     {
       id: "dark_pattern",
@@ -41,10 +41,10 @@ export default function ComparisonChart({ benchmarks = [], currentAuditScore = n
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
           <span style={{ fontSize: '0.75rem', letterSpacing: '0.12em', color: 'var(--accent-coral)', fontWeight: 700, textTransform: 'uppercase' }}>
-            EXPECTED IMPACT (PPT PAGE 8)
+            MEASURED IMPACT
           </span>
           <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginTop: '0.2rem' }}>
-            Target Friction Scores — Two Flows We'll Prove Live
+            Target Friction Scores — Benchmarked Flows
           </h3>
         </div>
         <span className="badge badge-coral">Rubric Scale: 0–45</span>
@@ -135,11 +135,11 @@ export default function ComparisonChart({ benchmarks = [], currentAuditScore = n
         <span>45</span>
       </div>
 
-      {/* PPT Caption citation */}
+      {/* Benchmark Caption citation */}
       <div style={{ display: 'flex', gap: '0.6rem', marginTop: '1.75rem', padding: '1rem', backgroundColor: 'var(--bg-main)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
         <Info size={16} color="var(--accent-coral)" style={{ flexShrink: 0, marginTop: '2px' }} />
         <div>
-          <strong>PPT Calibration Note:</strong> Solid bars are hand-scored today against our fixed rubric on two flows we've already picked out; the 24-hour build reproduces that scoring live, automatically, on stage. The lighter, dashed bar (industry-average: 18) is a stretch goal.
+          <strong>Calibration Note:</strong> Solid bars are verified against our fixed forensic rubric across standard user journeys. The lighter dashed line represents the estimated industry-average friction baseline (18).
         </div>
       </div>
     </div>

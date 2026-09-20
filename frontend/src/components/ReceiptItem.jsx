@@ -48,7 +48,7 @@ export default function ReceiptItem({ item }) {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', fontSize: '0.7rem', color: 'var(--text-muted)', flexWrap: 'wrap', gap: '0.5rem' }}>
         <span>Confidence: <strong style={{ color: 'var(--text-secondary)' }}>{formatConfidence(item.confidence)}</strong></span>
-        <span>Rubric: PPT Published Methodology</span>
+        <span>Rubric: Published Methodology</span>
       </div>
     </div>
   );

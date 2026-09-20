@@ -15,7 +15,7 @@ export default function Comparison() {
         const data = await getComparisonBenchmarks();
         setBenchmarks(data.benchmarks || []);
       } catch (err) {
-        console.warn('Using local PPT fallback benchmarks:', err);
+        console.warn('Using local fallback benchmarks:', err);
       } finally {
         setLoading(false);
       }
@@ -31,7 +31,7 @@ export default function Comparison() {
     <div>
       <div style={{ marginBottom: '2.5rem' }}>
         <span style={{ fontSize: '0.75rem', letterSpacing: '0.15em', color: 'var(--accent-coral)', fontWeight: 700, textTransform: 'uppercase' }}>
-          PROOF BY CONTRAST (PPT PAGE 8)
+          PROOF BY CONTRAST
         </span>
         <h1 style={{ fontSize: '2.4rem', fontWeight: 800, marginTop: '0.25rem', marginBottom: '0.5rem' }}>
           Industry Benchmark Comparisons
@@ -46,14 +46,14 @@ export default function Comparison() {
         <ComparisonChart benchmarks={benchmarks} />
       </div>
 
-      {/* Two Audiences, One Engine & MVP Roadmap from PPT Page 7 & 8 */}
+      {/* Two Audiences, One Engine & Architecture Roadmap */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
         {/* MVP Targets Card */}
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
             <Award size={20} color="var(--accent-coral)" />
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>
-              MVP in 24 Hours (PPT Page 8)
+              Core Forensic Architecture
             </h3>
           </div>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.875rem' }}>

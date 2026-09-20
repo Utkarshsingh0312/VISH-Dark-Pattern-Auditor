@@ -54,7 +54,7 @@ export default function Home() {
       <section className="home-section" style={{ margin: '4.5rem 0 3.5rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           <span className="section-eyebrow">
-            THE APPROACH (PPT PAGE 4)
+            HOW VISH WORKS
           </span>
           <h2 className="section-heading">
             Four Steps, Fully Automated.
@@ -74,7 +74,7 @@ export default function Home() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2.5rem', alignItems: 'center' }}>
           <div>
             <span className="section-eyebrow">
-              THE PROBLEM (PPT PAGE 2)
+              WHY VISH
             </span>
             <h2 className="section-heading" style={{ textAlign: 'left', margin: '0.35rem 0 1rem', lineHeight: 1.2 }}>
               You've Felt It. Couldn't Prove It.
@@ -135,11 +135,11 @@ export default function Home() {
 
       <div className="section-divider-glow" />
 
-      {/* 4. The Solution & Rubric Table (PPT Page 3) */}
+      {/* 4. The Solution & Rubric Table */}
       <section className="home-section" style={{ margin: '5rem 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           <span className="section-eyebrow">
-            THE SOLUTION (PPT PAGE 3)
+            THE SOLUTION
           </span>
           <h2 className="section-heading">
             A Number, Not a Feeling.

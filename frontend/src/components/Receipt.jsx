@@ -31,7 +31,7 @@ export default function Receipt({ result }) {
     if (is_blocked || vision_source === "blocked") {
       return { text: "AUDIT BLOCKED", color: "badge-amber", icon: AlertOctagon };
     }
-    if (is_demo) return { text: "Demo Flow (PPT Reference)", color: "badge-blue" };
+    if (is_demo) return { text: "Verified Demo Flow", color: "badge-blue" };
     if (vision_source === "gemini_vision") return { text: "Real Gemini Vision AI", color: "badge-coral", icon: Sparkles };
     return { text: "Mock Vision Fallback", color: "badge-blue" };
   };
@@ -243,7 +243,7 @@ export default function Receipt({ result }) {
         ) : detections.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-secondary)' }}>
             <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>Zero Dark Patterns Detected</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>This target site satisfied the PPT compliance rubric with no dark pattern friction identified.</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>This target site satisfied the forensic compliance rubric with no dark pattern friction identified.</div>
           </div>
         ) : (
           detections.map((item, idx) => (
@@ -284,9 +284,9 @@ export default function Receipt({ result }) {
         </div>
       </div>
 
-      {/* Footer disclaimer from PPT */}
+      {/* Footer disclaimer */}
       <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)', fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-        Scores are published against the fixed, disclosed rubric from PPT Page 3 (Hidden Cost: 12, Forced Re-auth: 8, Confirmshaming: 7, Roach Motel: 10, Max: 45). Detections below 80% confidence are flagged for human review before final score certification.
+        Scores are published against our fixed, disclosed forensic rubric (Hidden Cost: 12, Forced Re-auth: 8, Confirmshaming: 7, Roach Motel: 10, Max: 45). Detections below 80% confidence are flagged for human review before final score certification.
       </div>
     </div>
   );

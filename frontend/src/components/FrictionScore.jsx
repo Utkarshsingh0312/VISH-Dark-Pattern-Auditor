@@ -4,7 +4,7 @@ import { formatScore } from '../utils/formatters';
 export default function FrictionScore({ score = 0, size = 'default', label = 'Friction Score', isBlocked = false }) {
   const numScore = formatScore(score);
 
-  // Color mapping based on PPT calibration
+  // Color mapping based on score calibration
   // Honest ~6 (green/blue), Average ~18 (amber), Dark Pattern ~37 (coral/red)
   const getColor = (s) => {
     if (isBlocked) return { main: 'var(--accent-amber)', text: '#F59E0B', border: 'rgba(245, 158, 11, 0.4)' };
@@ -81,7 +81,7 @@ export default function FrictionScore({ score = 0, size = 'default', label = 'Fr
           {isBlocked ? 'AUDIT BLOCKED' : label}
         </span>
         <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-          {isBlocked ? 'Security verification required — no unreliable score generated' : 'Published PPT Rubric Scale (0–45)'}
+          {isBlocked ? 'Security verification required — no unreliable score generated' : 'Published Rubric Scale (0–45)'}
         </p>
       </div>
     </div>
