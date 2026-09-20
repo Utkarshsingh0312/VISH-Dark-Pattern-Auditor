@@ -1,49 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShieldAlert, Play, BarChart3, Terminal, Activity, ArrowUpRight } from 'lucide-react';
+import { ShieldAlert, Play, BarChart3, Terminal } from 'lucide-react';
 
 export default function Navbar() {
   const location = useLocation();
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   return (
-    <header className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}>
+    <header className="navbar">
       <div className="navbar-inner">
-        <Link to="/" className="brand" title="VISH — Dark Pattern Auditor">
-          <div className="brand-icon-wrapper">
-            <img 
-              src="/logo_mark.png" 
-              alt="VISH Logo" 
-              className="brand-logo-img" 
-            />
-            <span className="brand-glow-halo"></span>
-          </div>
+        <Link to="/" className="brand">
+          <svg className="brand-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            <circle cx="18" cy="4" r="2.5" fill="#FF5733" />
+          </svg>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span className="brand-name">VISH</span>
-              <span className="brand-badge-pill">AI FORENSICS</span>
-            </div>
-            <span style={{ fontSize: '0.62rem', letterSpacing: '0.12em', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-              Dark Pattern Auditor
-            </span>
+            <span style={{ fontSize: '0.65rem', letterSpacing: '0.15em', color: 'var(--text-secondary)', fontWeight: 700 }}>DARK PATTERN AUDITOR</span>
+            <span className="brand-name">VISH</span>
           </div>
         </Link>
-
-        {/* System telemetry indicator */}
-        <div className="nav-system-status hide-mobile">
-          <span className="status-beacon-dot"></span>
-          <span className="status-beacon-text">CORE: READY</span>
-          <span className="status-separator">/</span>
-          <span className="status-detail">GEMINI VISION 2.5</span>
-        </div>
 
         <nav className="nav-links">
           <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
@@ -55,9 +29,8 @@ export default function Navbar() {
           <Link to="/comparison" className={`nav-link ${location.pathname === '/comparison' ? 'active' : ''}`}>
             Benchmarks
           </Link>
-          <Link to="/audit" className="nav-cta btn-glow">
-            <span>Start an Audit</span>
-            <ArrowUpRight size={14} />
+          <Link to="/audit" className="nav-cta">
+            Start an Audit
           </Link>
         </nav>
       </div>
