@@ -1,39 +1,95 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Play, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Play, ShieldAlert, CheckCircle2, Bot, Scale, FileText } from 'lucide-react';
+import LiveAuditPreview from './LiveAuditPreview';
 
 export default function Hero() {
   return (
-    <section style={{ textAlign: 'center', padding: '3.5rem 1rem 2rem' }}>
-      <div style={{ display: 'inline-flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '1.75rem' }}>
-        <span className="badge badge-coral">PROBLEM → SOLUTION</span>
-        <span className="badge badge-blue">LIVE & AUTOMATED</span>
-        <span className="badge badge-coral">RECEIPT, NOT A FEELING</span>
-      </div>
+    <section className="hero-section-refined">
+      {/* Background Ambience Layer */}
+      <div className="hero-ambience-glow" />
+      <div className="hero-grid-pattern" />
 
-      <h1 style={{ fontSize: 'clamp(3rem, 7vw, 5.5rem)', fontWeight: 800, lineHeight: 1.05, marginBottom: '1rem', letterSpacing: '-0.03em' }}>
-        VISH
-      </h1>
+      <div className="hero-content-wrapper">
+        {/* Eyebrow badge */}
+        <div className="hero-eyebrow-container">
+          <span className="hero-eyebrow-badge">
+            <span className="eyebrow-dot" />
+            DARK PATTERN AUDITOR
+          </span>
+        </div>
 
-      <h2 style={{ fontSize: 'clamp(1.25rem, 2.5vw, 1.85rem)', fontWeight: 400, fontStyle: 'italic', color: 'var(--text-secondary)', marginBottom: '1.75rem' }}>
-        Every dark pattern, caught in the act.
-      </h2>
+        {/* Hero Title */}
+        <h1 className="hero-brand-title">
+          VISH
+        </h1>
 
-      <p style={{ maxWidth: '720px', margin: '0 auto 2.5rem', fontSize: '1.15rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-        Paste a public flow link. Watch an AI walk it like a real user. Get a scored receipt of every manipulation it hit — live.
-      </p>
+        {/* Tagline */}
+        <h2 className="hero-tagline">
+          Every dark pattern, <span className="text-gradient-coral">caught in the act.</span>
+        </h2>
 
-      <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '3rem' }}>
-        <Link to="/audit" className="btn btn-primary" style={{ padding: '0.85rem 2.25rem', fontSize: '1.05rem' }}>
-          Start an Audit <ArrowRight size={18} />
-        </Link>
-        <Link to="/results/demo_dark_pattern_flow" className="btn btn-secondary" style={{ padding: '0.85rem 2rem', fontSize: '1.05rem' }}>
-          <Play size={18} fill="currentColor" /> View Demo
-        </Link>
-      </div>
+        {/* Readable Narrow Description */}
+        <p className="hero-description">
+          Paste a public flow link. Watch an AI walk it like a real user. Get a scored receipt of every manipulation it hit &mdash; live.
+        </p>
 
-      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
-        <strong style={{ color: 'var(--accent-coral)', textTransform: 'uppercase' }}>TEAM · BENEFIT BRIDGE</strong> : Utkarsh Singh · Vaishnavi Tripathi · Uday Chauhan · Tushar Agarwal
+        {/* CTAs */}
+        <div className="hero-cta-group">
+          <Link to="/audit" className="btn btn-primary hero-btn-main">
+            <span>Start an Audit</span>
+            <ArrowRight size={17} />
+          </Link>
+          <Link to="/results/demo_dark_pattern_flow" className="btn btn-secondary hero-btn-secondary">
+            <Play size={15} fill="currentColor" />
+            <span>View Demo</span>
+          </Link>
+        </div>
+
+        {/* Live Visual Audit Preview */}
+        <div className="hero-audit-preview-wrapper">
+          <LiveAuditPreview />
+        </div>
+
+        {/* Trust & Product Signals Strip */}
+        <div className="trust-signals-strip">
+          <div className="trust-signal-item">
+            <Bot size={14} className="text-coral" />
+            <span>LIVE BROWSER AUDIT</span>
+          </div>
+          <span className="trust-signal-divider">·</span>
+          <div className="trust-signal-item">
+            <ShieldAlert size={14} className="text-blue" />
+            <span>REAL-TIME DETECTION</span>
+          </div>
+          <span className="trust-signal-divider">·</span>
+          <div className="trust-signal-item">
+            <Scale size={14} className="text-emerald" />
+            <span>SCORED EVIDENCE</span>
+          </div>
+          <span className="trust-signal-divider">·</span>
+          <div className="trust-signal-item">
+            <FileText size={14} className="text-coral" />
+            <span>EXPLAINABLE RESULTS</span>
+          </div>
+        </div>
+
+        {/* Team Accreditation (Clean & Subtle) */}
+        <div className="hero-team-block">
+          <div className="team-intro">
+            <span className="team-intro-label">BUILT BY</span>
+            <strong className="team-brand-tag">BENEFIT BRIDGE</strong>
+          </div>
+          <div className="team-members-list">
+            <span>Utkarsh Singh</span>
+            <span className="team-dot">·</span>
+            <span>Vaishnavi Tripathi</span>
+            <span className="team-dot">·</span>
+            <span>Uday Chauhan</span>
+            <span className="team-dot">·</span>
+            <span>Tushar Agarwal</span>
+          </div>
+        </div>
       </div>
     </section>
   );
