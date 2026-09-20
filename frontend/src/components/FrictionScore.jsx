@@ -37,7 +37,7 @@ export default function FrictionScore({ score = 0, size = 'default', label = 'Fr
             <span
               className="score-value"
               style={{
-                fontSize: isLarge ? '1.8rem' : '1.35rem',
+                fontSize: isLarge ? '1.75rem' : '1.3rem',
                 color: color.text,
                 fontWeight: 800,
                 letterSpacing: '0.05em'
@@ -45,8 +45,17 @@ export default function FrictionScore({ score = 0, size = 'default', label = 'Fr
             >
               BLOCKED
             </span>
-            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-              Anti-Bot Active
+            <span
+              style={{
+                fontSize: isLarge ? '0.72rem' : '0.65rem',
+                color: '#FCD34D',
+                marginTop: '0.3rem',
+                maxWidth: '90%',
+                textAlign: 'center',
+                lineHeight: 1.2
+              }}
+            >
+              No Friction Score generated
             </span>
           </>
         ) : (
@@ -68,11 +77,11 @@ export default function FrictionScore({ score = 0, size = 'default', label = 'Fr
       </div>
 
       <div style={{ marginTop: '0.85rem' }}>
-        <span style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-secondary)' }}>
-          {isBlocked ? 'Audit Blocked' : label}
+        <span style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: isBlocked ? 'var(--accent-amber)' : 'var(--text-secondary)' }}>
+          {isBlocked ? 'AUDIT BLOCKED' : label}
         </span>
         <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-          {isBlocked ? 'Security Barrier Encountered (0/45 Not Certified)' : 'Published PPT Rubric Scale (0–45)'}
+          {isBlocked ? 'Security verification required — no unreliable score generated' : 'Published PPT Rubric Scale (0–45)'}
         </p>
       </div>
     </div>

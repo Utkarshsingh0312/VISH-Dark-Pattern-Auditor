@@ -72,13 +72,14 @@ class Audit(BaseModel):
     status: AuditStatus
     created_at: datetime
     completed_at: Optional[datetime] = None
-    friction_score: int = Field(default=0, ge=0, le=45)
+    friction_score: Optional[int] = Field(default=None, ge=0, le=45)
     is_demo: bool = False
     is_live_crawl: bool = False
     payment_detected: bool = False
     stopped_for_safety: bool = False
     is_blocked: bool = False
     block_reason: Optional[str] = None
+    security_barrier: Optional[str] = None
     vision_source: str = "pending"  # "gemini_vision" | "mock" | "demo" | "unavailable" | "blocked"
     error_message: Optional[str] = None
 
@@ -86,7 +87,7 @@ class AuditResult(BaseModel):
     audit_id: str
     url: str
     audit_type: AuditType
-    friction_score: int = Field(default=0, ge=0, le=45)
+    friction_score: Optional[int] = Field(default=None, ge=0, le=45)
     detections: List[Detection] = []
     estimated_cost: float = 0.0
     estimated_time: int = 0
@@ -99,6 +100,7 @@ class AuditResult(BaseModel):
     stopped_for_safety: bool = False
     is_blocked: bool = False
     block_reason: Optional[str] = None
+    security_barrier: Optional[str] = None
     vision_source: str = "gemini_vision"  # "gemini_vision" | "mock" | "demo" | "blocked"
     error_message: Optional[str] = None
     score_summary: Optional[str] = None

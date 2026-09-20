@@ -77,6 +77,15 @@ export default function AuditInput({ onStartAudit, onStartDemo, isLoading }) {
         >
           <Play size={13} fill="currentColor" /> Honest / One-Click Flow (Target 6)
         </button>
+        <button
+          type="button"
+          onClick={() => onStartDemo('blocked_challenge_flow')}
+          className="btn btn-secondary btn-sm"
+          disabled={isLoading}
+          style={{ borderColor: 'rgba(245, 158, 11, 0.4)', color: '#FCD34D' }}
+        >
+          <Play size={13} fill="currentColor" /> Security Challenge (Blocked Demo)
+        </button>
       </div>
 
       <div style={{ marginTop: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -118,6 +127,33 @@ export default function AuditInput({ onStartAudit, onStartDemo, isLoading }) {
           title="Audit Roach Motel (1-click signup vs phone/mail cancel)"
         >
           Roach Motel (10 pts)
+        </button>
+        <button
+          type="button"
+          onClick={() => setUrl(`${fixtureBase}/api/mock_sites/security_challenge_fixture.html`)}
+          className="badge badge-amber"
+          style={{ cursor: 'pointer', border: '1px solid rgba(245, 158, 11, 0.5)', background: 'rgba(245, 158, 11, 0.15)', color: '#FCD34D' }}
+          title="Audit Turnstile / Cloudflare Challenge (Blocked)"
+        >
+          Cloudflare Turnstile (Blocked)
+        </button>
+        <button
+          type="button"
+          onClick={() => setUrl(`${fixtureBase}/api/mock_sites/perimeterx_fixture.html`)}
+          className="badge badge-amber"
+          style={{ cursor: 'pointer', border: '1px solid rgba(245, 158, 11, 0.5)', background: 'rgba(245, 158, 11, 0.15)', color: '#FCD34D' }}
+          title="Audit PerimeterX / Bot Detection (#px-captcha)"
+        >
+          PerimeterX (Blocked)
+        </button>
+        <button
+          type="button"
+          onClick={() => setUrl(`${fixtureBase}/api/mock_sites/http_403_blocked.html`)}
+          className="badge badge-amber"
+          style={{ cursor: 'pointer', border: '1px solid rgba(245, 158, 11, 0.5)', background: 'rgba(245, 158, 11, 0.15)', color: '#FCD34D' }}
+          title="Audit HTTP 403 Forbidden Response (Blocked)"
+        >
+          HTTP 403 (Blocked)
         </button>
         <button
           type="button"

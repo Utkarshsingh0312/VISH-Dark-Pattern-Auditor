@@ -35,10 +35,12 @@ LIVE_STEPS_DB: Dict[str, List[AuditStep]] = {}
 demo_dark = ReceiptGenerator.generate_demo_receipt("dark_pattern_flow")
 demo_honest = ReceiptGenerator.generate_demo_receipt("honest_flow")
 demo_average = ReceiptGenerator.generate_demo_receipt("industry_average_flow")
+demo_blocked = ReceiptGenerator.generate_demo_receipt("blocked_challenge_flow")
 
 RESULTS_DB["demo_dark_pattern_flow"] = demo_dark
 RESULTS_DB["demo_honest_flow"] = demo_honest
 RESULTS_DB["demo_industry_average"] = demo_average
+RESULTS_DB["demo_blocked_challenge_flow"] = demo_blocked
 
 AUDITS_DB["demo_dark_pattern_flow"] = Audit(
     id="demo_dark_pattern_flow",
@@ -79,6 +81,22 @@ AUDITS_DB["demo_industry_average"] = Audit(
     vision_source="demo"
 )
 
+AUDITS_DB["demo_blocked_challenge_flow"] = Audit(
+    id="demo_blocked_challenge_flow",
+    url=demo_blocked.url,
+    audit_type=demo_blocked.audit_type,
+    status=AuditStatus.BLOCKED,
+    created_at=demo_blocked.created_at,
+    completed_at=demo_blocked.completed_at,
+    friction_score=None,
+    is_demo=True,
+    is_live_crawl=False,
+    is_blocked=True,
+    block_reason=demo_blocked.block_reason,
+    security_barrier=demo_blocked.security_barrier,
+    vision_source="blocked"
+)
+
 
 async def run_live_browser_audit(audit_id: str, url: str, audit_type: AuditType):
     """
@@ -104,10 +122,12 @@ async def run_live_browser_audit(audit_id: str, url: str, audit_type: AuditType)
 
         # Check if landing page was blocked by security challenge
         if agent.is_blocked:
-            logger.warning(f"[{audit_id}] Target site presented an anti-bot challenge on landing: {agent.block_reason}")
+            logger.warning(f"[{audit_id}] Target site presented an anti-bot challenge on landing: {agent.block_reason} ({agent.security_barrier})")
             AUDITS_DB[audit_id].status = AuditStatus.BLOCKED
             AUDITS_DB[audit_id].is_blocked = True
             AUDITS_DB[audit_id].block_reason = agent.block_reason
+            AUDITS_DB[audit_id].security_barrier = agent.security_barrier
+            AUDITS_DB[audit_id].friction_score = None
             AUDITS_DB[audit_id].vision_source = "blocked"
             AUDITS_DB[audit_id].completed_at = utc_now()
             receipt = ReceiptGenerator.generate_blocked_receipt(
@@ -116,6 +136,7 @@ async def run_live_browser_audit(audit_id: str, url: str, audit_type: AuditType)
                 audit_type=audit_type,
                 steps=agent.steps,
                 reason=agent.block_reason,
+                security_barrier=agent.security_barrier,
                 created_at=AUDITS_DB[audit_id].created_at
             )
             RESULTS_DB[audit_id] = receipt
@@ -141,10 +162,12 @@ async def run_live_browser_audit(audit_id: str, url: str, audit_type: AuditType)
 
         # Check if challenge encountered during crawl
         if agent.is_blocked:
-            logger.warning(f"[{audit_id}] Target site presented an anti-bot challenge during crawl: {agent.block_reason}")
+            logger.warning(f"[{audit_id}] Target site presented an anti-bot challenge during crawl: {agent.block_reason} ({agent.security_barrier})")
             AUDITS_DB[audit_id].status = AuditStatus.BLOCKED
             AUDITS_DB[audit_id].is_blocked = True
             AUDITS_DB[audit_id].block_reason = agent.block_reason
+            AUDITS_DB[audit_id].security_barrier = agent.security_barrier
+            AUDITS_DB[audit_id].friction_score = None
             AUDITS_DB[audit_id].vision_source = "blocked"
             AUDITS_DB[audit_id].completed_at = utc_now()
             receipt = ReceiptGenerator.generate_blocked_receipt(
@@ -153,6 +176,7 @@ async def run_live_browser_audit(audit_id: str, url: str, audit_type: AuditType)
                 audit_type=audit_type,
                 steps=steps,
                 reason=agent.block_reason,
+                security_barrier=agent.security_barrier,
                 created_at=AUDITS_DB[audit_id].created_at
             )
             RESULTS_DB[audit_id] = receipt
@@ -265,6 +289,8 @@ async def create_audit(request: AuditCreateRequest, background_tasks: Background
             return AUDITS_DB["demo_honest_flow"]
         elif flow_id == "industry_average_flow":
             return AUDITS_DB["demo_industry_average"]
+        elif flow_id == "blocked_challenge_flow":
+            return AUDITS_DB["demo_blocked_challenge_flow"]
         else:
             return AUDITS_DB["demo_dark_pattern_flow"]
 
@@ -345,6 +371,7 @@ async def get_audit_status(audit_id: str):
         "stopped_for_safety": audit.stopped_for_safety,
         "is_blocked": getattr(audit, "is_blocked", False),
         "block_reason": getattr(audit, "block_reason", None),
+        "security_barrier": getattr(audit, "security_barrier", None),
         "vision_source": audit.vision_source,
         "error_message": audit.error_message,
         "is_demo": audit.is_demo,
@@ -419,3 +446,18 @@ async def get_comparison_benchmarks():
 async def get_rubric():
     """Returns the published fixed rubric from PPT Page 3."""
     return FrictionEngine.get_rubric_documentation()
+
+
+@router.get("/mock_sites/http_403_blocked.html", tags=["Mock Sites"])
+async def http_403_blocked_fixture():
+    """Mock test endpoint returning HTTP 403 Forbidden with security challenge message."""
+    from fastapi.responses import HTMLResponse
+    content = """<!DOCTYPE html>
+<html>
+<head><title>403 Forbidden | Access Denied</title></head>
+<body style="background:#0b0f19; color:#f8fafc; font-family:sans-serif; padding:50px; text-align:center;">
+  <h1>403 Forbidden</h1>
+  <p>Access Denied: Automated access to this resource is prohibited by security policy.</p>
+</body>
+</html>"""
+    return HTMLResponse(content=content, status_code=403)

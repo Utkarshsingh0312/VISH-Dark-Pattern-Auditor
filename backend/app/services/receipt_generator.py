@@ -161,6 +161,32 @@ class ReceiptGenerator:
             res.estimated_time = 4
             return res
 
+        elif flow_id == "blocked_challenge_flow":
+            steps = [
+                AuditStep(
+                    step_number=1,
+                    url="https://demo.security-challenge.verify/checkout",
+                    title="Security Verification Required | Cloudflare",
+                    action="Initial Page Navigation",
+                    status="Blocked",
+                    is_challenge=True,
+                    screenshot="/api/mock_sites/security_challenge_fixture.html",
+                    screenshot_url="/api/mock_sites/security_challenge_fixture.html",
+                    timestamp=now
+                )
+            ]
+            res = ReceiptGenerator.generate_blocked_receipt(
+                audit_id="demo_blocked_challenge_flow",
+                url="https://demo.security-challenge.verify/checkout",
+                audit_type=AuditType.CHECKOUT,
+                steps=steps,
+                reason="The target website requires a security verification that VISH cannot bypass.",
+                security_barrier="Cloudflare Turnstile",
+                created_at=now
+            )
+            res.is_demo = True
+            return res
+
         else:
             # PPT Page 8 calibration: 37 (Known dark-pattern flow)
             # Detections strictly from PPT Table Page 3
@@ -242,28 +268,30 @@ class ReceiptGenerator:
         url: str,
         audit_type: AuditType,
         steps: List[AuditStep],
-        reason: str,
+        reason: Optional[str] = None,
+        security_barrier: Optional[str] = None,
         created_at: Optional[datetime] = None
     ) -> AuditResult:
         """
         Generates an audit receipt specifically when the target site presented
         an anti-bot or security verification challenge (e.g. Cloudflare Turnstile,
-        reCAPTCHA, PerimeterX).
+        reCAPTCHA, PerimeterX, HTTP 403 Forbidden).
         Guarantees:
-        - Does NOT report 0/45 or 'No patterns detected' as certified.
-        - Sets is_blocked=True and clear block_reason.
+        - friction_score is None (never 0/45).
+        - score_summary: "VISH stopped safely because this website requires automated-access verification. We do not bypass security controls, so no unreliable score was generated."
+        - Does NOT classify Audit Blocked as a TRUE NEGATIVE or clean.
         - Preserves captured step screenshots as visual blocked evidence.
         """
+        standard_reason = reason or "The target website requires a security verification that VISH cannot bypass."
         summary = (
-            f"[AUDIT BLOCKED] Target {url} presented an anti-bot or security verification challenge. "
-            f"VISH strictly adheres to compliance principles and does not bypass security barriers. "
-            f"Reason: {reason}"
+            "VISH stopped safely because this website requires automated-access verification. "
+            "We do not bypass security controls, so no unreliable score was generated."
         )
         return AuditResult(
             audit_id=audit_id,
             url=url,
             audit_type=audit_type,
-            friction_score=0,
+            friction_score=None,
             detections=[],
             estimated_cost=0.0,
             estimated_time=0,
@@ -273,7 +301,8 @@ class ReceiptGenerator:
             is_demo=False,
             is_live_crawl=True,
             is_blocked=True,
-            block_reason=reason,
+            block_reason=standard_reason,
+            security_barrier=security_barrier or "Automated Access Verification",
             vision_source="blocked",
             score_summary=summary
         )

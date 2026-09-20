@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Access Denied | Security Verification</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0b0f19;
+      color: #f8fafc;
+      margin: 0;
+      padding: 60px 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 80vh;
+    }
+    .challenge-box {
+      background: #151d2f;
+      border: 1px solid #23324d;
+      border-radius: 12px;
+      padding: 40px;
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+    }
+    h1 {
+      font-size: 20px;
+      margin-bottom: 12px;
+      color: #f8fafc;
+    }
+    p {
+      font-size: 14px;
+      color: #94a3b8;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    #px-captcha {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 24px;
+      margin: 20px 0;
+      cursor: pointer;
+    }
+    .press-hold-btn {
+      background: #f59e0b;
+      color: #0b0f19;
+      font-weight: 700;
+      padding: 12px 24px;
+      border-radius: 6px;
+      display: inline-block;
+      user-select: none;
+    }
+    .footer-note {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="challenge-box">
+    <h1>Access Denied</h1>
+    <p>Please solve this challenge to confirm you are not a robot and continue to the checkout page.</p>
+    
+    <div id="px-captcha">
+      <div class="press-hold-btn">Press and hold to confirm</div>
+      <p style="font-size: 12px; margin-top: 10px; color: #94a3b8;">Human verification required by PerimeterX</p>
+    </div>
+
+    <div class="footer-note">
+      Incident ID: px-984210-us-east • Protected by PerimeterX / HUMAN Security
+    </div>
+  </div>
+</body>
+</html>

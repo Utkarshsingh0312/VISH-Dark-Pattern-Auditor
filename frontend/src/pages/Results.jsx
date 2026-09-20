@@ -71,11 +71,11 @@ export default function Results() {
       {/* Main summary header */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', alignItems: 'center', marginBottom: '2.5rem' }}>
         <div>
-          <span style={{ fontSize: '0.75rem', letterSpacing: '0.15em', color: 'var(--accent-coral)', fontWeight: 700, textTransform: 'uppercase' }}>
-            AUDIT EVALUATION SUMMARY
+          <span style={{ fontSize: '0.75rem', letterSpacing: '0.15em', color: results?.is_blocked ? 'var(--accent-amber)' : 'var(--accent-coral)', fontWeight: 700, textTransform: 'uppercase' }}>
+            {results?.is_blocked ? 'SECURITY BARRIER HALTED AUDIT' : 'AUDIT EVALUATION SUMMARY'}
           </span>
           <h1 style={{ fontSize: '2.4rem', fontWeight: 800, marginTop: '0.25rem', marginBottom: '0.5rem' }}>
-            Itemized Audit Receipt
+            {results?.is_blocked ? 'Audit Blocked Report' : 'Itemized Audit Receipt'}
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.5 }}>
             {results?.score_summary || "Every point charged, and why, laid out in sequence against the published rubric."}
@@ -89,7 +89,7 @@ export default function Results() {
 
       {/* Estimated Impact Cards */}
       <div style={{ marginBottom: '2.5rem' }}>
-        <ImpactCard estimatedCost={cost} estimatedMinutes={time} />
+        <ImpactCard estimatedCost={cost} estimatedMinutes={time} isBlocked={results?.is_blocked || false} />
       </div>
 
       {/* Itemized Receipt Component */}

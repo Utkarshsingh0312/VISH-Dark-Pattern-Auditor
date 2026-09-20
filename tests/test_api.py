@@ -370,16 +370,18 @@ def test_generate_blocked_receipt():
         url="https://www.agoda.com",
         audit_type="Checkout",
         steps=[],
-        reason="Target site presented an anti-bot/security verification challenge (Cloudflare Turnstile)"
+        reason="The target website requires a security verification that VISH cannot bypass.",
+        security_barrier="Cloudflare Turnstile"
     )
     assert receipt.audit_id == "audit_test_blocked"
     assert receipt.is_blocked is True
     assert receipt.vision_source == "blocked"
-    assert receipt.friction_score == 0
+    assert receipt.friction_score is None  # Never 0/45
     assert len(receipt.detections) == 0
-    assert "AUDIT BLOCKED" in receipt.score_summary
-    assert "does not bypass" in receipt.score_summary
-    assert "Cloudflare Turnstile" in receipt.block_reason
+    assert "VISH stopped safely because this website requires automated-access verification" in receipt.score_summary
+    assert "We do not bypass security controls" in receipt.score_summary
+    assert receipt.block_reason == "The target website requires a security verification that VISH cannot bypass."
+    assert receipt.security_barrier == "Cloudflare Turnstile"
 
 
 def test_anti_bot_challenge_detection_on_fixture(tmp_path):
@@ -399,18 +401,93 @@ def test_anti_bot_challenge_detection_on_fixture(tmp_path):
             is_challenge, reason = await agent.check_security_challenge()
             assert is_challenge is True
             assert "human" in reason.lower() or "challenge" in reason.lower()
+            assert "turnstile" in agent.security_barrier.lower() or "cloudflare" in agent.security_barrier.lower()
 
             # Test run_controlled_audit identifies challenge and halts
             steps = await agent.run_controlled_audit()
             assert agent.is_blocked is True
             assert agent.status == "Audit Blocked"
-            assert "anti-bot/security verification challenge" in agent.block_reason
+            assert agent.block_reason == "The target website requires a security verification that VISH cannot bypass."
             assert any(s.is_challenge for s in steps)
             assert steps[-1].status == "Blocked"
         finally:
             await agent.close()
 
     asyncio.run(run_test())
+
+
+def test_perimeterx_challenge_detection(tmp_path):
+    """Verify BrowserAgent detects PerimeterX #px-captcha and halts with AUDIT BLOCKED."""
+    fixture_path = Path("backend/mock_sites/perimeterx_fixture.html").resolve()
+    assert fixture_path.exists(), f"PerimeterX fixture missing at {fixture_path}"
+    fixture_html = fixture_path.read_text(encoding="utf-8")
+
+    async def run_test():
+        agent = BrowserAgent(headless=True, pacing_delay_sec=0.05, screenshots_dir=tmp_path)
+        try:
+            await agent.start_audit("https://example.com", "test_px_audit")
+            await agent._page.set_content(fixture_html)
+
+            is_challenge, reason = await agent.check_security_challenge()
+            assert is_challenge is True
+            assert agent.security_barrier == "PerimeterX / Bot Detection"
+
+            steps = await agent.run_controlled_audit()
+            assert agent.is_blocked is True
+            assert agent.block_reason == "The target website requires a security verification that VISH cannot bypass."
+            assert steps[-1].status == "Blocked"
+        finally:
+            await agent.close()
+
+    asyncio.run(run_test())
+
+
+def test_http_403_waf_challenge_detection(tmp_path):
+    """Verify check_security_challenge identifies HTTP 403 Forbidden responses as automated access protection."""
+    class MockResponse:
+        def __init__(self, status):
+            self.status = status
+
+    async def run_test():
+        agent = BrowserAgent(headless=True, pacing_delay_sec=0.05, screenshots_dir=tmp_path)
+        try:
+            is_challenge, reason = await agent.check_security_challenge(response=MockResponse(403))
+            assert is_challenge is True
+            assert "403" in reason
+            assert agent.security_barrier == "HTTP 403 (Automated Access / WAF Protection)"
+        finally:
+            await agent.close()
+
+    asyncio.run(run_test())
+
+
+def test_blocked_demo_flow_api():
+    """Verify POST /api/audits with blocked_challenge_flow returns valid blocked demo."""
+    response = client.post(
+        "/api/audits",
+        json={
+            "url": "https://demo.security-challenge.verify/checkout",
+            "audit_type": "Checkout",
+            "is_demo": True,
+            "demo_flow_id": "blocked_challenge_flow"
+        }
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["status"] == "Audit Blocked"
+    assert data["is_blocked"] is True
+    assert data["friction_score"] is None
+    assert data["block_reason"] == "The target website requires a security verification that VISH cannot bypass."
+    assert data["security_barrier"] == "Cloudflare Turnstile"
+
+    # Fetch results
+    results_resp = client.get(f"/api/audits/{data['id']}/results")
+    assert results_resp.status_code == 200
+    res = results_resp.json()
+    assert res["is_blocked"] is True
+    assert res["friction_score"] is None
+    assert len(res["detections"]) == 0
+    assert "We do not bypass security controls" in res["score_summary"]
 
 
 def test_action_deduplication(tmp_path):

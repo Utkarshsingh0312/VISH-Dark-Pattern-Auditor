@@ -174,10 +174,16 @@ class BrowserAgent:
         "just a moment...",
         "attention required! | cloudflare",
         "security verification | cloudflare",
+        "security verification",
+        "human verification",
         "access denied | www.agoda.com",
         "access denied",
         "security check",
-        "robot check"
+        "robot check",
+        "cloudflare",
+        "perimeterx",
+        "ddos protection by cloudflare",
+        "403 forbidden"
     ]
 
     CHALLENGE_BODY_KEYWORDS = [
@@ -195,7 +201,12 @@ class BrowserAgent:
         "press and hold to confirm",
         "robot check",
         "cloudflare ray id",
-        "perimeterx"
+        "perimeterx",
+        "access denied",
+        "blocked by security policy",
+        "automated access",
+        "captcha",
+        "human verification"
     ]
 
     CHALLENGE_SELECTORS = [
@@ -207,6 +218,7 @@ class BrowserAgent:
         "#cf-challenge-running",
         "#challenge-stage",
         "#challenge-form",
+        "#challenge-error-title",
         ".cf-turnstile",
         ".g-recaptcha",
         ".h-captcha",
@@ -256,6 +268,7 @@ class BrowserAgent:
         self.stopped_for_safety: bool = False
         self.is_blocked: bool = False
         self.block_reason: Optional[str] = None
+        self.security_barrier: Optional[str] = None
         self.error_message: Optional[str] = None
         self.status: str = "Ready to audit"
         self.performed_actions: List[str] = []
@@ -281,6 +294,9 @@ class BrowserAgent:
         self.step_counter = 0
         self.payment_detected = False
         self.stopped_for_safety = False
+        self.is_blocked = False
+        self.block_reason = None
+        self.security_barrier = None
         self.error_message = None
         self.performed_actions = []
 
@@ -312,7 +328,7 @@ class BrowserAgent:
             # Navigate to target URL
             self.status = "Navigating"
             logger.info(f"[{audit_id}] Navigating to {valid_url}")
-            await self._page.goto(valid_url, wait_until="domcontentloaded")
+            response = await self._page.goto(valid_url, wait_until="domcontentloaded")
             try:
                 await self._page.wait_for_load_state("networkidle", timeout=2500)
             except Exception:
@@ -324,14 +340,16 @@ class BrowserAgent:
             logger.info(f"[{audit_id}] Landed on: {self.current_title} ({self.current_url})")
 
             # Check for immediate anti-bot/security challenge on landing
-            is_challenge, challenge_reason = await self.check_security_challenge()
+            is_challenge, challenge_reason = await self.check_security_challenge(response=response)
             if is_challenge:
                 self.is_blocked = True
-                self.block_reason = f"Target site presented an anti-bot/security verification challenge ({challenge_reason}). VISH does not bypass security challenges, so the target could not be reliably analyzed."
-                logger.warning(f"[{audit_id}] AUDIT BLOCKED: {self.block_reason}")
+                if not self.security_barrier:
+                    self.security_barrier = self.classify_barrier(challenge_reason, status_code=getattr(response, "status", None))
+                self.block_reason = "The target website requires a security verification that VISH cannot bypass."
+                logger.warning(f"[{audit_id}] AUDIT BLOCKED: {self.block_reason} ({self.security_barrier}: {challenge_reason})")
                 self.status = "Audit Blocked"
                 await self._record_step(
-                    action=f"Blocked: Anti-bot Challenge ({challenge_reason})",
+                    action=f"Blocked: {self.security_barrier}",
                     url=self.current_url,
                     title=self.current_title,
                     is_challenge=True
@@ -344,7 +362,8 @@ class BrowserAgent:
                     "step_count": len(self.steps),
                     "status": "Audit Blocked",
                     "is_blocked": True,
-                    "block_reason": self.block_reason
+                    "block_reason": self.block_reason,
+                    "security_barrier": self.security_barrier
                 }
 
             # Capture initial screenshot (Step 1)
@@ -402,12 +421,14 @@ class BrowserAgent:
                 is_challenge, challenge_reason = await self.check_security_challenge()
                 if is_challenge:
                     self.is_blocked = True
-                    self.block_reason = f"Target site presented an anti-bot/security verification challenge ({challenge_reason}). VISH does not bypass security challenges, so the target could not be reliably analyzed."
-                    logger.warning(f"[{self.audit_id}] AUDIT BLOCKED: {self.block_reason}")
+                    if not self.security_barrier:
+                        self.security_barrier = self.classify_barrier(challenge_reason)
+                    self.block_reason = "The target website requires a security verification that VISH cannot bypass."
+                    logger.warning(f"[{self.audit_id}] AUDIT BLOCKED: {self.block_reason} ({self.security_barrier}: {challenge_reason})")
                     self.status = "Audit Blocked"
                     await update_status("Audit Blocked")
                     await self._record_step(
-                        action=f"Blocked: Anti-bot Challenge ({challenge_reason})",
+                        action=f"Blocked: {self.security_barrier}",
                         url=self._page.url,
                         title=await self._page.title(),
                         is_challenge=True
@@ -493,12 +514,14 @@ class BrowserAgent:
                 is_challenge, challenge_reason = await self.check_security_challenge()
                 if is_challenge:
                     self.is_blocked = True
-                    self.block_reason = f"Target site presented an anti-bot/security verification challenge ({challenge_reason}). VISH does not bypass security challenges, so the target could not be reliably analyzed."
-                    logger.warning(f"[{self.audit_id}] AUDIT BLOCKED POST-ACTION: {self.block_reason}")
+                    if not self.security_barrier:
+                        self.security_barrier = self.classify_barrier(challenge_reason)
+                    self.block_reason = "The target website requires a security verification that VISH cannot bypass."
+                    logger.warning(f"[{self.audit_id}] AUDIT BLOCKED POST-ACTION: {self.block_reason} ({self.security_barrier}: {challenge_reason})")
                     self.status = "Audit Blocked"
                     await update_status("Audit Blocked")
                     await self._record_step(
-                        action=f"Blocked: Anti-bot Challenge ({challenge_reason})",
+                        action=f"Blocked: {self.security_barrier}",
                         url=self.current_url,
                         title=self.current_title,
                         is_challenge=True
@@ -592,29 +615,63 @@ class BrowserAgent:
             logger.warning(f"Error checking payment safety: {e}")
             return False, ""
 
-    async def check_security_challenge(self) -> Tuple[bool, str]:
+    def classify_barrier(self, matched_detail: str, status_code: Optional[int] = None) -> str:
+        """Determines the human-readable security barrier category."""
+        detail_lower = (matched_detail or "").lower()
+        if status_code == 403 or "403" in detail_lower:
+            return "HTTP 403 (Automated Access / WAF Protection)"
+        if "px-captcha" in detail_lower or "perimeterx" in detail_lower:
+            return "PerimeterX / Bot Detection"
+        if "turnstile" in detail_lower:
+            return "Cloudflare Turnstile"
+        if "cloudflare" in detail_lower or "cf-" in detail_lower:
+            return "Cloudflare Challenge"
+        if "recaptcha" in detail_lower or "hcaptcha" in detail_lower or "captcha" in detail_lower:
+            return "CAPTCHA Security Challenge"
+        if "access denied" in detail_lower:
+            return "Access Denied / Security Verification"
+        if "human" in detail_lower or "robot" in detail_lower:
+            return "Human Verification Challenge"
+        return "Automated Access Verification"
+
+    async def check_security_challenge(self, response=None) -> Tuple[bool, str]:
         """
-        Scans page title, body text, and DOM elements for anti-bot / security challenge signals
-        (e.g., Cloudflare Turnstile, reCAPTCHA, PerimeterX/HUMAN, Datadome, Kasada).
-        Returns (is_challenge_detected, matched_detail).
+        Scans HTTP response, page title, body text, and DOM elements for anti-bot / security challenge signals
+        (e.g., Cloudflare Turnstile, reCAPTCHA, PerimeterX/HUMAN, Datadome, Kasada, HTTP 403).
+        Returns (is_challenge_detected, matched_detail). Also sets self.security_barrier.
         """
+        if response:
+            try:
+                status = getattr(response, "status", None)
+                if status == 403:
+                    detail = "HTTP 403 Forbidden (Automated Access / WAF Protection)"
+                    self.security_barrier = self.classify_barrier(detail, status_code=403)
+                    return True, detail
+            except Exception:
+                pass
+
         if not self._page or self._page.is_closed():
             return False, ""
 
         try:
-            # 1. Inspect page title
+            # Gather page context (title + body sample) for accurate barrier classification
             title = ""
             try:
                 title = (await self._page.title() or "").strip()
             except Exception:
                 pass
 
-            title_lower = title.lower()
-            for kw in self.CHALLENGE_TITLE_KEYWORDS:
-                if kw in title_lower:
-                    return True, f"Challenge title: '{title}' matched keyword '{kw}'"
+            body_sample = ""
+            try:
+                body_el = await self._page.query_selector("body")
+                if body_el:
+                    body_sample = ((await body_el.inner_text() or "")[:4000]).lower()
+            except Exception:
+                pass
 
-            # 2. Inspect known challenge selectors / iframes / elements
+            context_str = f"{title} {body_sample}".strip()
+
+            # 1. Inspect known specific challenge selectors / iframes / elements first
             for sel in self.CHALLENGE_SELECTORS:
                 try:
                     el = await self._page.query_selector(sel)
@@ -622,24 +679,31 @@ class BrowserAgent:
                         try:
                             vis = await el.is_visible()
                             if vis:
-                                return True, f"Challenge element '{sel}' detected and visible"
+                                detail = f"Challenge element '{sel}' detected and visible"
+                                self.security_barrier = self.classify_barrier(f"{sel} {context_str}")
+                                return True, detail
                         except Exception:
-                            if "challenge" in sel or "recaptcha" in sel or "turnstile" in sel:
-                                return True, f"Challenge element '{sel}' present in DOM"
+                            if "challenge" in sel or "recaptcha" in sel or "turnstile" in sel or "px" in sel:
+                                detail = f"Challenge element '{sel}' present in DOM"
+                                self.security_barrier = self.classify_barrier(f"{sel} {context_str}")
+                                return True, detail
                 except Exception:
                     continue
 
-            # 3. Inspect visible text on page (body text)
-            try:
-                body_el = await self._page.query_selector("body")
-                if body_el:
-                    body_text = (await body_el.inner_text() or "").lower()
-                    body_sample = body_text[:3000]
-                    for kw in self.CHALLENGE_BODY_KEYWORDS:
-                        if kw in body_sample:
-                            return True, f"Challenge keyword '{kw}' found in page body"
-            except Exception:
-                pass
+            # 2. Inspect visible text on page (body text)
+            for kw in self.CHALLENGE_BODY_KEYWORDS:
+                if kw in body_sample:
+                    detail = f"Challenge keyword '{kw}' found in page body"
+                    self.security_barrier = self.classify_barrier(f"{kw} {context_str}")
+                    return True, detail
+
+            # 3. Inspect page title
+            title_lower = title.lower()
+            for kw in self.CHALLENGE_TITLE_KEYWORDS:
+                if kw in title_lower:
+                    detail = f"Challenge title: '{title}' matched keyword '{kw}'"
+                    self.security_barrier = self.classify_barrier(f"{title} {kw} {context_str}")
+                    return True, detail
 
             return False, ""
         except Exception as e:
