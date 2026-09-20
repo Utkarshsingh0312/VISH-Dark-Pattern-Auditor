@@ -412,3 +412,131 @@ def test_anti_bot_challenge_detection_on_fixture(tmp_path):
 
     asyncio.run(run_test())
 
+
+def test_action_deduplication(tmp_path):
+    """Verify BrowserAgent deduplicates actions and never repeats the same interaction."""
+    async def run_test():
+        agent = BrowserAgent(headless=True, pacing_delay_sec=0.05, screenshots_dir=tmp_path)
+        try:
+            await agent.start_audit("https://example.com", "test_dedup_audit")
+            await agent._page.set_content("""
+                <div>
+                    <button id="signup-btn">Sign Up Free</button>
+                    <button id="search-btn">Search Deals</button>
+                </div>
+            """)
+            el1, desc1 = await agent._find_next_safe_action()
+            assert el1 is not None
+            assert "signup-btn" in desc1 or "Sign Up" in desc1
+            assert len(agent.performed_actions) == 1
+
+            # Second call must NOT pick the first button again
+            el2, desc2 = await agent._find_next_safe_action()
+            assert el2 is not None
+            assert "search-btn" in desc2 or "Search" in desc2
+            assert len(agent.performed_actions) == 2
+            assert desc1 != desc2
+
+            # Third call has no remaining actions
+            el3, desc3 = await agent._find_next_safe_action()
+            assert el3 is None
+        finally:
+            await agent.close()
+
+    asyncio.run(run_test())
+
+
+def test_prioritized_meaningful_flow_traversal(tmp_path):
+    """Verify BrowserAgent prioritizes Signup (Tier 1) over Search (Tier 2) over Generic (Tier 7)."""
+    async def run_test():
+        agent = BrowserAgent(headless=True, pacing_delay_sec=0.05, screenshots_dir=tmp_path)
+        try:
+            await agent.start_audit("https://example.com", "test_prio_audit")
+            await agent._page.set_content("""
+                <div>
+                    <a href="/generic-info">Learn More</a>
+                    <button id="search-hotels">Search Hotels</button>
+                    <button id="create-acc">Create Account</button>
+                </div>
+            """)
+            el1, desc1 = await agent._find_next_safe_action()
+            # Tier 1 (Signup) must be chosen first
+            assert "[1_SIGNUP]" in desc1
+            assert "Create Account" in desc1
+
+            el2, desc2 = await agent._find_next_safe_action()
+            # Tier 2 (Search) must be chosen second
+            assert "[2_SEARCH]" in desc2
+            assert "Search Hotels" in desc2
+
+            el3, desc3 = await agent._find_next_safe_action()
+            # Tier 7 (Other/Benign) chosen last
+            assert "[7_OTHER_BENIGN]" in desc3
+            assert "Learn More" in desc3
+        finally:
+            await agent.close()
+
+    asyncio.run(run_test())
+
+
+def test_payment_stop_behavior_and_no_purchase_submission(tmp_path):
+    """Verify BrowserAgent detects checkout payment elements, halts safely, and never submits purchase."""
+    async def run_test():
+        agent = BrowserAgent(headless=True, pacing_delay_sec=0.05, screenshots_dir=tmp_path, max_pages=3)
+        try:
+            await agent.start_audit("https://example.com", "test_pay_stop_audit")
+            # Inject credit card input and final purchase confirmation button
+            await agent._page.set_content("""
+                <div>
+                    <h2>Checkout Review</h2>
+                    <input name="cardnumber" placeholder="Card Number" />
+                    <button id="pay-submit" onclick="window.purchaseSubmitted = true;">Place Order & Pay Now</button>
+                </div>
+            """)
+            is_payment, trigger = await agent.check_payment_safety()
+            assert is_payment is True
+            assert "Place Order" in trigger or "cardnumber" in trigger or "pay now" in trigger.lower()
+
+            # Execute controlled crawl; it must halt immediately at the payment boundary
+            steps = await agent.run_controlled_audit()
+            assert agent.stopped_for_safety is True
+            assert agent.payment_detected is True
+            assert any(s.stopped_for_safety for s in steps)
+            assert any("Safety Stop" in s.action for s in steps)
+
+            # Confirm no purchase button was ever clicked in recorded actions
+            assert not any("click" in s.action.lower() and "pay" in s.action.lower() for s in steps)
+            assert steps[-1].screenshot is not None
+            assert Path(steps[-1].screenshot).exists()
+        finally:
+            await agent.close()
+
+    asyncio.run(run_test())
+
+
+def test_screenshot_capture_after_interaction(tmp_path):
+    """Verify screenshot file is created and metadata correctly recorded after each step."""
+    async def run_test():
+        agent = BrowserAgent(headless=True, pacing_delay_sec=0.05, screenshots_dir=tmp_path, max_pages=2)
+        try:
+            await agent.start_audit("https://example.com", "test_screen_audit")
+            await agent._page.set_content("""
+                <div>
+                    <h1>Welcome</h1>
+                    <a href="/catalog">Browse Catalog</a>
+                </div>
+            """)
+            steps = await agent.run_controlled_audit()
+            assert len(steps) >= 1
+            for s in steps:
+                assert s.screenshot is not None
+                assert Path(s.screenshot).exists()
+                assert Path(s.screenshot).stat().st_size > 0
+                assert s.url is not None
+                assert s.step_number >= 1
+        finally:
+            await agent.close()
+
+    asyncio.run(run_test())
+
+

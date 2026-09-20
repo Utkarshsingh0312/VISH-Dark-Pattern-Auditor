@@ -11,6 +11,7 @@ Guarantees & Constraints (PPT Pages 4 & 6):
 """
 
 import os
+import re
 import asyncio
 import logging
 import urllib.parse
@@ -62,12 +63,6 @@ def validate_url(url: str) -> str:
     if not parsed.netloc:
         raise InvalidUrlError("URL must include a valid domain or host name (e.g. https://example.com).")
 
-    # Reject local network and reserved addresses if necessary
-    host = parsed.hostname or ""
-    if host.lower() in ("localhost", "127.0.0.1", "0.0.0.0") and "test" not in host:
-        # Note: Allow for internal tests if needed, but flag for production
-        pass
-
     return clean_url
 
 
@@ -78,21 +73,101 @@ class BrowserAgent:
 
     PAYMENT_KEYWORDS = [
         "place order",
+        "place your order",
         "confirm purchase",
+        "confirm and pay",
         "submit payment",
         "pay now",
         "confirm payment",
         "complete purchase",
+        "complete payment",
+        "complete booking & pay",
         "charge card",
+        "charge my card",
+        "authorize payment",
+        "submit order",
+        "pay with card",
+        "pay with credit card",
+        "pay with paypal",
         "buy now",
         "purchase now",
         "subscribe & pay",
         "start paid plan",
-        "pay ",
-        "payment",
-        "checkout",
-        "purchase",
-        "buy"
+        "pay "
+    ]
+
+    PAYMENT_INPUT_SELECTORS = [
+        "input[name*='cardnumber' i]",
+        "input[name*='card-number' i]",
+        "input[name*='cc-number' i]",
+        "input[autocomplete*='cc-number']",
+        "input[name*='cvv' i]",
+        "input[name*='cvc' i]",
+        "input[autocomplete*='cc-csc']",
+        "iframe[src*='stripe.com']",
+        "iframe[src*='braintree']",
+        "iframe[src*='adyen']",
+        "#card-element",
+        "#payment-element"
+    ]
+
+    # Prioritized flow action keywords & selectors
+    SIGNUP_KEYWORDS = [
+        "create account", "sign up", "register", "join now", "join free",
+        "create a free account", "new account", "sign up free", "join agoda", "get started"
+    ]
+    SIGNUP_SELECTORS = [
+        "[data-element-name*='sign-up']", "[data-selenium*='sign-up']",
+        "a[href*='signup']", "a[href*='register']", "a[href*='create-account']",
+        "button[id*='signup']", "button[id*='register']"
+    ]
+
+    SEARCH_KEYWORDS = [
+        "search", "find deals", "search hotels", "search flights", "find rooms",
+        "explore deals", "search now", "find stay", "find flight", "show results",
+        "view results", "see more properties", "see availability", "see more"
+    ]
+    SEARCH_SELECTORS = [
+        "[data-element-name*='search']", "[data-selenium*='search']",
+        "button[type='submit']", "button.search-button"
+    ]
+
+    ITEM_KEYWORDS = [
+        "select", "book", "choose", "select room", "reserve",
+        "see room options", "view deal", "select offer", "add to cart",
+        "add to basket", "choose room", "select flight", "book room", "book now"
+    ]
+    ITEM_SELECTORS = [
+        "[data-element-name*='book']", "[data-selenium*='select-room']"
+    ]
+
+    CHECKOUT_PROGRESSION_KEYWORDS = [
+        "continue to booking", "proceed to checkout", "go to checkout", "proceed",
+        "continue to guest details", "guest details", "continue to payment",
+        "review booking", "review order", "next step", "checkout", "continue"
+    ]
+    CHECKOUT_SELECTORS = [
+        "[data-element-name*='checkout']"
+    ]
+
+    CANCELLATION_KEYWORDS = [
+        "cancellation policy", "cancel membership", "manage booking",
+        "refund policy", "terms of cancellation", "cancellation fee", "cancel reservation"
+    ]
+    CANCELLATION_SELECTORS = [
+        "a[href*='cancel']", "a[href*='refund']", "a[href*='cancellation']"
+    ]
+
+    CATEGORY_KEYWORDS = [
+        "hotels", "flights", "flight + hotel", "packages",
+        "homes & apts", "activities", "pricing", "plans", "deals", "vacation rentals"
+    ]
+    CATEGORY_SELECTORS = [
+        "[role='tab']", "[role='tablist'] button"
+    ]
+
+    OTHER_KEYWORDS = [
+        "learn more", "read more", "details", "features", "explore", "view", "start"
     ]
 
     CHALLENGE_TITLE_KEYWORDS = [
@@ -378,16 +453,35 @@ class BrowserAgent:
                 await update_status("Navigating")
                 logger.info(f"[{self.audit_id}] Performing safe action: {action_desc}")
                 
+                pages_before = set(self._context.pages) if self._context else set()
                 try:
                     await safe_element.click(timeout=self.action_timeout_ms)
+                    await asyncio.sleep(0.5)
+                except Exception as click_err:
+                    logger.warning(f"[{self.audit_id}] Click timed out or intercepted: {click_err}")
+                    try:
+                        await safe_element.click(timeout=2000, force=True)
+                    except Exception:
+                        pass
+
+                # Check if a new tab opened
+                if self._context:
+                    pages_after = set(self._context.pages)
+                    new_pages = pages_after - pages_before
+                    if new_pages:
+                        latest_page = list(new_pages)[-1]
+                        if not latest_page.is_closed():
+                            self._page = latest_page
+                            logger.info(f"[{self.audit_id}] Switched active page to newly opened tab: {self._page.url}")
+
+                try:
                     await self._page.wait_for_load_state("domcontentloaded", timeout=self.nav_timeout_ms)
                     try:
                         await self._page.wait_for_load_state("networkidle", timeout=2500)
                     except Exception:
                         pass
                     await asyncio.sleep(self.pacing_delay_sec)
-                except Exception as click_err:
-                    logger.warning(f"[{self.audit_id}] Click timed out or intercepted: {click_err}")
+                except Exception:
                     pass
 
                 self.current_url = self._page.url
@@ -447,14 +541,14 @@ class BrowserAgent:
 
     async def check_payment_safety(self) -> Tuple[bool, str]:
         """
-        Scans visible buttons, forms, and links for payment or checkout indicators.
+        Scans visible buttons, forms, and inputs for payment charge or credit card submission triggers.
         Returns (is_payment_detected, matching_term).
         """
         if not self._page:
             return False, ""
 
         try:
-            # Query visible interactive elements
+            # 1. Query visible interactive elements
             elements = await self._page.query_selector_all(
                 "button, a, input[type='submit'], input[type='button'], [role='button']"
             )
@@ -479,9 +573,18 @@ class BrowserAgent:
                 except Exception:
                     continue
 
-            # Also check page URL for checkout/payment markers
+            # 2. Query payment input selectors (credit card number, cvv, payment iframes)
+            for sel in self.PAYMENT_INPUT_SELECTORS:
+                try:
+                    input_el = await self._page.query_selector(sel)
+                    if input_el and await input_el.is_visible():
+                        return True, f"Payment input field or iframe detected ('{sel}')"
+                except Exception:
+                    continue
+
+            # 3. Check page URL for final payment completion endpoints
             current_url_lower = self._page.url.lower()
-            if any(marker in current_url_lower for marker in ["/checkout", "/pay", "/billing", "/subscribe"]):
+            if any(marker in current_url_lower for marker in ["/pay/confirm", "/order/confirm", "/checkout/review", "/payment/process", "/billing/pay"]):
                 return True, f"URL endpoint '{self._page.url}' indicates payment flow"
 
             return False, ""
@@ -559,57 +662,152 @@ class BrowserAgent:
 
     async def _find_next_safe_action(self) -> Tuple[Optional[Any], str]:
         """
-        Finds a safe, non-destructive navigation element to click (e.g. 'Learn More', 'Features', 'Next').
-        Prioritizes internal links and buttons that stay on the same domain.
+        Finds the next safe, non-destructive navigation action prioritizing meaningful user flows:
+        1. Signup / registration
+        2. Search / product-selection flow
+        3. Add/select item
+        4. Checkout progression
+        5. Cancellation/account-management flow when publicly accessible
+        6. Relevant navigation tabs
+        7. Other meaningful buttons/links
         """
         if not self._page:
             return None, ""
 
         current_host = urllib.parse.urlparse(self.current_url).netloc
+        # Base registered domain (e.g. agoda.com from www.agoda.com)
+        parts = current_host.split('.')
+        base_domain = '.'.join(parts[-2:]) if len(parts) >= 2 else current_host
 
-        # Desired benign navigational keywords
-        benign_keywords = [
-            "learn more", "read more", "features", "details",
-            "explore", "next", "continue", "view", "start",
-            "sign up", "get started", "pricing", "plans"
+        # Dismiss common floating promo modals/dialogs if present to unblock navigation
+        try:
+            close_btn = await self._page.query_selector(
+                "button[aria-label='Close'], button[data-selenium='prominent-app-download-floating-button'], button.modal-close, [aria-label*='dismiss' i]"
+            )
+            if close_btn and await close_btn.is_visible():
+                await close_btn.click(timeout=1500)
+                await asyncio.sleep(0.4)
+        except Exception:
+            pass
+
+        tiers = [
+            ("1_SIGNUP", self.SIGNUP_KEYWORDS, self.SIGNUP_SELECTORS),
+            ("2_SEARCH", self.SEARCH_KEYWORDS, self.SEARCH_SELECTORS),
+            ("3_SELECT_ITEM", self.ITEM_KEYWORDS, self.ITEM_SELECTORS),
+            ("4_CHECKOUT", self.CHECKOUT_PROGRESSION_KEYWORDS, self.CHECKOUT_SELECTORS),
+            ("5_CANCELLATION", self.CANCELLATION_KEYWORDS, self.CANCELLATION_SELECTORS),
+            ("6_CATEGORY_TABS", self.CATEGORY_KEYWORDS, self.CATEGORY_SELECTORS),
+            ("7_OTHER_BENIGN", self.OTHER_KEYWORDS, [])
         ]
 
+        def match_tokens(text: str, keywords: List[str]) -> bool:
+            t_lower = text.lower()
+            words = set(re.findall(r'\b\w+\b', t_lower))
+            for kw in keywords:
+                if " " in kw or "-" in kw:
+                    if kw in t_lower:
+                        return True
+                else:
+                    if kw in words:
+                        return True
+            return False
+
         try:
-            # First search buttons
-            buttons = await self._page.query_selector_all("button, [role='button']")
-            for b in buttons:
-                if await b.is_visible():
-                    txt = (await b.inner_text() or "").strip()
-                    lower_txt = txt.lower()
-                    action_sig = f"btn:{lower_txt}"
-                    if action_sig in self.performed_actions:
-                        continue
-                    if any(k in lower_txt for k in benign_keywords) and not any(p in lower_txt for p in self.PAYMENT_KEYWORDS):
-                        self.performed_actions.append(action_sig)
-                        return b, f"Click button '{txt}'"
-
-            # Then search internal anchor links
+            buttons = await self._page.query_selector_all("button, [role='button'], input[type='submit'], input[type='button']")
             links = await self._page.query_selector_all("a[href]")
-            for link in links:
-                if await link.is_visible():
-                    href = await link.get_attribute("href") or ""
-                    txt = (await link.inner_text() or "").strip()
-                    lower_txt = txt.lower()
-                    action_sig = f"link:{href or lower_txt}"
 
-                    # Avoid anchor fragments and external hops
-                    if href.startswith("#") or href.startswith("mailto:") or href.startswith("tel:"):
+            for tier_name, keywords, selectors in tiers:
+                # 1. Check buttons for this tier
+                for b in buttons:
+                    try:
+                        if not await b.is_visible():
+                            continue
+                        txt = (await b.inner_text() or "").strip()
+                        aria = (await b.get_attribute("aria-label") or "").strip()
+                        testid = (await b.get_attribute("data-selenium") or await b.get_attribute("data-element-name") or "").strip()
+                        btn_id = (await b.get_attribute("id") or "").strip()
+                        combined_text = f"{txt} {aria}".strip().lower()
+
+                        # Safety: never click payment charge triggers
+                        if any(p in combined_text for p in self.PAYMENT_KEYWORDS):
+                            continue
+
+                        # Deduplication signature
+                        sig = f"btn:{btn_id or testid or txt[:35] or aria[:35]}"
+                        if sig in self.performed_actions:
+                            continue
+
+                        # Match
+                        matched = match_tokens(combined_text, keywords)
+                        if not matched and selectors:
+                            for sel in selectors:
+                                try:
+                                    if await b.matches(sel):
+                                        matched = True
+                                        break
+                                except Exception:
+                                    pass
+
+                        if matched:
+                            self.performed_actions.append(sig)
+                            return b, f"[{tier_name}] Click button '{txt or aria or testid or 'action'}'"
+                    except Exception:
                         continue
 
-                    if action_sig in self.performed_actions:
+                # 2. Check links for this tier
+                for link in links:
+                    try:
+                        if not await link.is_visible():
+                            continue
+                        href = (await link.get_attribute("href") or "").strip()
+                        txt = (await link.inner_text() or "").strip()
+                        aria = (await link.get_attribute("aria-label") or "").strip()
+                        combined_text = f"{txt} {aria}".strip().lower()
+
+                        # Avoid anchor fragments, javascript, mailto, tel
+                        if href.startswith("#") or href.startswith("javascript:") or href.startswith("mailto:") or href.startswith("tel:"):
+                            continue
+
+                        # Strict domain enforcement: must be relative or same registered domain
+                        if href.startswith("http://") or href.startswith("https://"):
+                            link_host = urllib.parse.urlparse(href).netloc
+                            if base_domain not in link_host:
+                                continue
+
+                        # Safety: never click payment charge triggers
+                        if any(p in combined_text for p in self.PAYMENT_KEYWORDS):
+                            continue
+
+                        # Deduplication signature
+                        sig = f"link:{href.split('?')[0]}:{txt[:25]}"
+                        if sig in self.performed_actions:
+                            continue
+
+                        # Match
+                        matched = match_tokens(combined_text, keywords)
+                        if not matched and selectors:
+                            for sel in selectors:
+                                try:
+                                    if await link.matches(sel):
+                                        matched = True
+                                        break
+                                except Exception:
+                                    pass
+
+                        # Path keywords in href
+                        if not matched and tier_name == "2_SEARCH":
+                            if any(path_kw in href.lower() for path_kw in ["/city/", "/search?", "/properties", "/listings"]):
+                                matched = True
+
+                        if not matched and tier_name == "3_SELECT_ITEM":
+                            if any(path_kw in href.lower() for path_kw in ["/hotel/", "/room/", "/deal/"]):
+                                matched = True
+
+                        if matched:
+                            self.performed_actions.append(sig)
+                            return link, f"[{tier_name}] Click link '{txt or href[:40]}'"
+                    except Exception:
                         continue
-                    
-                    # Same domain or relative URL
-                    if href.startswith("/") or current_host in href:
-                        if any(k in lower_txt for k in benign_keywords) or (len(txt) > 2 and len(txt) < 30):
-                            if not any(p in lower_txt for p in self.PAYMENT_KEYWORDS):
-                                self.performed_actions.append(action_sig)
-                                return link, f"Click link '{txt or href}'"
 
             return None, ""
         except Exception as e:

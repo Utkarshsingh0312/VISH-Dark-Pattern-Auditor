@@ -24,9 +24,9 @@ class Settings(BaseSettings):
     VIEWPORT_HEIGHT: int = 800
     NAV_TIMEOUT_MS: int = 25000
     ACTION_TIMEOUT_MS: int = 8000
-    MAX_PAGES: int = 3
-    MAX_ACTIONS: int = 8
-    MAX_SCREENSHOTS: int = 5
+    MAX_PAGES: int = 5
+    MAX_ACTIONS: int = 10
+    MAX_SCREENSHOTS: int = 6
     PACING_DELAY_SEC: float = 0.8
     
     # Storage Directory for Viewport Screenshots
