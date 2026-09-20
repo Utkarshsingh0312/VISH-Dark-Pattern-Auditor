@@ -23,6 +23,7 @@ class AuditStatus(str, Enum):
     CALCULATING = "Calculating score"
     GENERATING = "Generating receipt"
     COMPLETE = "Complete"
+    BLOCKED = "Audit Blocked"
     FAILED = "Failed"
 
 # The Four PPT Dark Pattern Categories (PPT Page 3 & 5)
@@ -54,6 +55,7 @@ class AuditStep(BaseModel):
     status: str
     payment_detected: bool = False
     stopped_for_safety: bool = False
+    is_challenge: bool = False
     timestamp: datetime = Field(default_factory=utc_now)
 
 class AuditCreateRequest(BaseModel):
@@ -75,14 +77,16 @@ class Audit(BaseModel):
     is_live_crawl: bool = False
     payment_detected: bool = False
     stopped_for_safety: bool = False
-    vision_source: str = "pending"  # "gemini_vision" | "mock" | "demo" | "unavailable"
+    is_blocked: bool = False
+    block_reason: Optional[str] = None
+    vision_source: str = "pending"  # "gemini_vision" | "mock" | "demo" | "unavailable" | "blocked"
     error_message: Optional[str] = None
 
 class AuditResult(BaseModel):
     audit_id: str
     url: str
     audit_type: AuditType
-    friction_score: int = Field(..., ge=0, le=45)
+    friction_score: int = Field(default=0, ge=0, le=45)
     detections: List[Detection] = []
     estimated_cost: float = 0.0
     estimated_time: int = 0
@@ -93,7 +97,9 @@ class AuditResult(BaseModel):
     is_live_crawl: bool = False
     payment_detected: bool = False
     stopped_for_safety: bool = False
-    vision_source: str = "gemini_vision"  # "gemini_vision" | "mock" | "demo"
+    is_blocked: bool = False
+    block_reason: Optional[str] = None
+    vision_source: str = "gemini_vision"  # "gemini_vision" | "mock" | "demo" | "blocked"
     error_message: Optional[str] = None
     score_summary: Optional[str] = None
 

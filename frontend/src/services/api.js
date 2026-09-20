@@ -22,14 +22,47 @@ export function getScreenshotUrl(url) {
   return url;
 }
 
+/**
+ * Resilient fetch helper:
+ * 1. Tries the primary endpoint (API_BASE).
+ * 2. If network/DNS fails (e.g. client ISP blocks direct Railway domain),
+ *    automatically falls back to relative /api which proxies via Vercel Edge.
+ * 3. Formats clear, user-friendly error messages instead of raw "Failed to fetch".
+ */
+async function requestWithFallback(endpoint, options = {}) {
+  const primaryUrl = `${API_BASE}${endpoint}`;
+  const fallbackUrl = (API_BASE && API_BASE !== '/api') ? `/api${endpoint}` : null;
+
+  try {
+    const res = await fetch(primaryUrl, options);
+    return res;
+  } catch (primaryErr) {
+    if (fallbackUrl) {
+      try {
+        console.warn(`[VISH API] Direct connection to ${primaryUrl} failed (${primaryErr.message}). Retrying via edge proxy ${fallbackUrl}...`);
+        const fallbackRes = await fetch(fallbackUrl, options);
+        return fallbackRes;
+      } catch (fallbackErr) {
+        console.error(`[VISH API] Fallback proxy ${fallbackUrl} also failed:`, fallbackErr);
+        throw new Error(
+          `Unable to connect to VISH backend service. Direct connection and Vercel edge proxy both failed. Please check network connectivity.`
+        );
+      }
+    }
+    throw new Error(
+      `Unable to connect to VISH backend (${primaryErr.message}). Please verify that the backend is reachable.`
+    );
+  }
+}
+
 export async function checkHealth() {
-  const res = await fetch(`${API_BASE}/health`);
+  const res = await requestWithFallback('/health');
   if (!res.ok) throw new Error(`Health check failed: ${res.status}`);
   return res.json();
 }
 
 export async function createAudit({ url, auditType, testAccountProvided = false, isDemo = false, demoFlowId = null }) {
-  const res = await fetch(`${API_BASE}/audits`, {
+  const res = await requestWithFallback('/audits', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -50,31 +83,31 @@ export async function createAudit({ url, auditType, testAccountProvided = false,
 }
 
 export async function getAudit(auditId) {
-  const res = await fetch(`${API_BASE}/audits/${auditId}`);
+  const res = await requestWithFallback(`/audits/${auditId}`);
   if (!res.ok) throw new Error(`Failed to load audit: ${res.status}`);
   return res.json();
 }
 
 export async function getAuditStatus(auditId) {
-  const res = await fetch(`${API_BASE}/audits/${auditId}/status`);
+  const res = await requestWithFallback(`/audits/${auditId}/status`);
   if (!res.ok) throw new Error(`Failed to fetch status: ${res.status}`);
   return res.json();
 }
 
 export async function getAuditResults(auditId) {
-  const res = await fetch(`${API_BASE}/audits/${auditId}/results`);
+  const res = await requestWithFallback(`/audits/${auditId}/results`);
   if (!res.ok) throw new Error(`Failed to fetch results: ${res.status}`);
   return res.json();
 }
 
 export async function getComparisonBenchmarks() {
-  const res = await fetch(`${API_BASE}/comparison`);
+  const res = await requestWithFallback('/comparison');
   if (!res.ok) throw new Error(`Failed to load benchmarks: ${res.status}`);
   return res.json();
 }
 
 export async function getRubric() {
-  const res = await fetch(`${API_BASE}/rubric`);
+  const res = await requestWithFallback('/rubric');
   if (!res.ok) throw new Error(`Failed to load rubric: ${res.status}`);
   return res.json();
 }

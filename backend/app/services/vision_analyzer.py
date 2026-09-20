@@ -154,7 +154,7 @@ class VisionAnalyzer:
         loop = asyncio.get_running_loop()
         
         all_candidates = [self.model_name]
-        for fallback in ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.7-flash", "gemini-2.5-pro"]:
+        for fallback in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-3.1-pro-preview"]:
             if fallback not in all_candidates:
                 all_candidates.append(fallback)
 
@@ -188,9 +188,14 @@ class VisionAnalyzer:
                             logger.warning(f"[VisionAnalyzer] Gemini ({current_model}) transient 503 spike, retrying in {wait_time}s...")
                             time.sleep(wait_time)
                             continue
-                        elif any(code in err_msg for code in ["429", "404", "RESOURCE_EXHAUSTED", "NOT_FOUND"]):
+                        elif "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
                             self._exhausted_models.add(current_model)
-                            logger.warning(f"[VisionAnalyzer] Model {current_model} unavailable ({err_msg[:60]}), checking next candidate model...")
+                            logger.warning(f"[VisionAnalyzer] Rate limit on {current_model}, backing off 4s...")
+                            time.sleep(4.0)
+                            break
+                        elif "404" in err_msg or "NOT_FOUND" in err_msg:
+                            self._exhausted_models.add(current_model)
+                            logger.warning(f"[VisionAnalyzer] Model {current_model} not found, checking next candidate...")
                             break
                         raise call_err
             if last_err:

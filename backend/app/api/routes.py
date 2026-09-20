@@ -102,17 +102,61 @@ async def run_live_browser_audit(audit_id: str, url: str, audit_type: AuditType)
         await agent.start_audit(url, audit_id)
         LIVE_STEPS_DB[audit_id] = list(agent.steps)
 
+        # Check if landing page was blocked by security challenge
+        if agent.is_blocked:
+            logger.warning(f"[{audit_id}] Target site presented an anti-bot challenge on landing: {agent.block_reason}")
+            AUDITS_DB[audit_id].status = AuditStatus.BLOCKED
+            AUDITS_DB[audit_id].is_blocked = True
+            AUDITS_DB[audit_id].block_reason = agent.block_reason
+            AUDITS_DB[audit_id].vision_source = "blocked"
+            AUDITS_DB[audit_id].completed_at = utc_now()
+            receipt = ReceiptGenerator.generate_blocked_receipt(
+                audit_id=audit_id,
+                url=url,
+                audit_type=audit_type,
+                steps=agent.steps,
+                reason=agent.block_reason,
+                created_at=AUDITS_DB[audit_id].created_at
+            )
+            RESULTS_DB[audit_id] = receipt
+            await agent.close()
+            return
+
         # Progress update callback
         async def on_status_change(new_status: str, step_counter: int, current_url: str):
-            if new_status != "Complete":
-                AUDITS_DB[audit_id].status = AuditStatus(new_status)
-            else:
+            if new_status == "Complete":
                 AUDITS_DB[audit_id].status = AuditStatus.ANALYZING
+            elif new_status == "Audit Blocked":
+                AUDITS_DB[audit_id].status = AuditStatus.BLOCKED
+            else:
+                try:
+                    AUDITS_DB[audit_id].status = AuditStatus(new_status)
+                except ValueError:
+                    pass
             LIVE_STEPS_DB[audit_id] = list(agent.steps)
 
         # Step 2: Controlled browser navigation
         steps = await agent.run_controlled_audit(on_status_change)
         LIVE_STEPS_DB[audit_id] = list(steps)
+
+        # Check if challenge encountered during crawl
+        if agent.is_blocked:
+            logger.warning(f"[{audit_id}] Target site presented an anti-bot challenge during crawl: {agent.block_reason}")
+            AUDITS_DB[audit_id].status = AuditStatus.BLOCKED
+            AUDITS_DB[audit_id].is_blocked = True
+            AUDITS_DB[audit_id].block_reason = agent.block_reason
+            AUDITS_DB[audit_id].vision_source = "blocked"
+            AUDITS_DB[audit_id].completed_at = utc_now()
+            receipt = ReceiptGenerator.generate_blocked_receipt(
+                audit_id=audit_id,
+                url=url,
+                audit_type=audit_type,
+                steps=steps,
+                reason=agent.block_reason,
+                created_at=AUDITS_DB[audit_id].created_at
+            )
+            RESULTS_DB[audit_id] = receipt
+            return
 
         # Step 3: Analyze captured screenshots with Gemini Vision
         AUDITS_DB[audit_id].status = AuditStatus.ANALYZING
@@ -274,7 +318,7 @@ async def get_audit_status(audit_id: str):
 
     # Step progression index
     current_idx = 1
-    if audit.status == AuditStatus.COMPLETE:
+    if audit.status in (AuditStatus.COMPLETE, AuditStatus.BLOCKED):
         current_idx = 6
     elif audit.status in (AuditStatus.OPENING, AuditStatus.NAVIGATING):
         current_idx = min(2, len(steps) + 1)
@@ -299,6 +343,8 @@ async def get_audit_status(audit_id: str):
         "latest_step": latest_step.model_dump() if latest_step else None,
         "payment_detected": audit.payment_detected,
         "stopped_for_safety": audit.stopped_for_safety,
+        "is_blocked": getattr(audit, "is_blocked", False),
+        "block_reason": getattr(audit, "block_reason", None),
         "vision_source": audit.vision_source,
         "error_message": audit.error_message,
         "is_demo": audit.is_demo,
@@ -322,7 +368,7 @@ async def get_audit_results(audit_id: str):
     if audit.status == AuditStatus.FAILED:
         raise HTTPException(status_code=400, detail=f"Audit failed: {audit.error_message or 'Unknown error'}")
     
-    if audit.status != AuditStatus.COMPLETE:
+    if audit.status not in (AuditStatus.COMPLETE, AuditStatus.BLOCKED):
         raise HTTPException(status_code=202, detail="Audit is still in progress")
 
     raise HTTPException(status_code=404, detail="Results not ready")

@@ -17,10 +17,13 @@ export default function Receipt({ result }) {
     is_demo = false,
     is_live_crawl = false,
     vision_source = 'pending',
-    stopped_for_safety = false
+    stopped_for_safety = false,
+    is_blocked = false,
+    block_reason = null
   } = result || {};
 
   const getSourceBadge = () => {
+    if (is_blocked || vision_source === "blocked") return { text: "Audit Blocked (Security Challenge)", color: "badge-amber", icon: AlertOctagon };
     if (is_demo) return { text: "Demo Flow (PPT Reference)", color: "badge-blue" };
     if (vision_source === "gemini_vision") return { text: "Real Gemini Vision AI", color: "badge-coral", icon: Sparkles };
     return { text: "Mock Vision Fallback", color: "badge-blue" };
@@ -55,6 +58,17 @@ export default function Receipt({ result }) {
           <span>Screenshots Captured: <strong>{steps.length}</strong></span>
         </div>
       </div>
+
+      {/* Blocked Challenge Notice */}
+      {is_blocked && (
+        <div style={{ backgroundColor: 'rgba(245, 158, 11, 0.15)', border: '1px solid rgba(245, 158, 11, 0.4)', borderRadius: 'var(--radius-sm)', padding: '0.9rem 1.1rem', marginBottom: '1.25rem', fontSize: '0.82rem', color: '#FCD34D', display: 'flex', gap: '0.65rem', alignItems: 'flex-start' }}>
+          <AlertOctagon size={20} color="var(--accent-amber)" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <div>
+            <strong style={{ display: 'block', marginBottom: '0.25rem', color: '#FDE68A' }}>Audit Blocked — Anti-Bot Challenge Encountered</strong>
+            <span>{block_reason || 'Target site presented an anti-bot or security verification challenge. VISH strictly respects security perimeters and does not bypass challenges.'}</span>
+          </div>
+        </div>
+      )}
 
       {/* Safety Notice if stopped */}
       {stopped_for_safety && (
@@ -97,7 +111,15 @@ export default function Receipt({ result }) {
 
       {/* Itemized list of detections */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        {detections.length === 0 ? (
+        {is_blocked ? (
+          <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-secondary)' }}>
+            <div style={{ fontWeight: 600, color: 'var(--accent-amber)', marginBottom: '0.35rem' }}>Audit Incomplete — Target Blocked</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              Because the target site presented an anti-bot or security verification challenge, the page could not be safely navigated.
+              VISH does not report 0/45 for blocked targets to avoid false assurances.
+            </div>
+          </div>
+        ) : detections.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-secondary)' }}>
             <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>Zero Dark Patterns Detected</div>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>This target site satisfied the PPT compliance rubric with no dark pattern friction identified.</div>
@@ -116,11 +138,15 @@ export default function Receipt({ result }) {
             TOTAL FRICTION SCORE
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 400 }}>
-            Published Rubric Limit: 45
+            {is_blocked ? 'Status: Uncertified (Challenge Encountered)' : 'Published Rubric Limit: 45'}
           </div>
         </div>
-        <div style={{ fontSize: '1.85rem', color: 'var(--accent-coral)', fontFamily: 'var(--font-mono)' }}>
-          {formatScore(friction_score)} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ 45</span>
+        <div style={{ fontSize: is_blocked ? '1.5rem' : '1.85rem', color: is_blocked ? 'var(--accent-amber)' : 'var(--accent-coral)', fontFamily: 'var(--font-mono)', fontWeight: 800 }}>
+          {is_blocked ? (
+            <span>BLOCKED</span>
+          ) : (
+            <>{formatScore(friction_score)} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ 45</span></>
+          )}
         </div>
       </div>
 

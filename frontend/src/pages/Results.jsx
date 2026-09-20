@@ -83,7 +83,7 @@ export default function Results() {
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <FrictionScore score={score} size="large" label="Final Friction Score" />
+          <FrictionScore score={score} size="large" label="Final Friction Score" isBlocked={results?.is_blocked || false} />
         </div>
       </div>
 

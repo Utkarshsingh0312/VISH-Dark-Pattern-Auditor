@@ -361,3 +361,54 @@ def test_cors_vercel_and_local_origins():
         assert preflight.status_code == 200
         assert preflight.headers.get("access-control-allow-origin") == origin
         assert preflight.headers.get("access-control-allow-credentials") == "true"
+
+
+def test_generate_blocked_receipt():
+    """Verify ReceiptGenerator produces compliant blocked receipt without certifying 0/45."""
+    receipt = ReceiptGenerator.generate_blocked_receipt(
+        audit_id="audit_test_blocked",
+        url="https://www.agoda.com",
+        audit_type="Checkout",
+        steps=[],
+        reason="Target site presented an anti-bot/security verification challenge (Cloudflare Turnstile)"
+    )
+    assert receipt.audit_id == "audit_test_blocked"
+    assert receipt.is_blocked is True
+    assert receipt.vision_source == "blocked"
+    assert receipt.friction_score == 0
+    assert len(receipt.detections) == 0
+    assert "AUDIT BLOCKED" in receipt.score_summary
+    assert "does not bypass" in receipt.score_summary
+    assert "Cloudflare Turnstile" in receipt.block_reason
+
+
+def test_anti_bot_challenge_detection_on_fixture(tmp_path):
+    """Verify BrowserAgent conservatively identifies anti-bot challenge and sets status to Audit Blocked."""
+    fixture_path = Path("backend/mock_sites/security_challenge_fixture.html").resolve()
+    assert fixture_path.exists(), f"Fixture missing at {fixture_path}"
+    fixture_html = fixture_path.read_text(encoding="utf-8")
+
+    async def run_test():
+        agent = BrowserAgent(headless=True, pacing_delay_sec=0.1, screenshots_dir=tmp_path)
+        try:
+            await agent.start_audit("https://example.com", "test_challenge_audit")
+            # Replace page content with anti-bot challenge fixture
+            await agent._page.set_content(fixture_html)
+
+            # Test direct check_security_challenge
+            is_challenge, reason = await agent.check_security_challenge()
+            assert is_challenge is True
+            assert "human" in reason.lower() or "challenge" in reason.lower()
+
+            # Test run_controlled_audit identifies challenge and halts
+            steps = await agent.run_controlled_audit()
+            assert agent.is_blocked is True
+            assert agent.status == "Audit Blocked"
+            assert "anti-bot/security verification challenge" in agent.block_reason
+            assert any(s.is_challenge for s in steps)
+            assert steps[-1].status == "Blocked"
+        finally:
+            await agent.close()
+
+    asyncio.run(run_test())
+

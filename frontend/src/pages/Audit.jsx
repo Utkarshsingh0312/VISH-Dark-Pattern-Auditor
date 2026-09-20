@@ -28,6 +28,8 @@ export default function Audit() {
     visionSource,
     paymentDetected,
     stoppedForSafety,
+    isBlocked,
+    blockReason,
     results,
     isLoading,
     error,
@@ -61,6 +63,8 @@ export default function Audit() {
 
   const isScanning = ['Analyzing screen', 'Detecting patterns', 'Inspecting page'].includes(status);
   const isComplete = status === 'Complete';
+  const isBlockedStatus = status === 'Audit Blocked' || isBlocked;
+  const isFinished = isComplete || isBlockedStatus;
 
   return (
     <div>
@@ -135,16 +139,20 @@ export default function Audit() {
             {/* Right: Live Friction Score and Pattern Feed */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div className="card" style={{ padding: '1.5rem', textAlign: 'center' }}>
-                <FrictionScore score={frictionScore} label={isLiveCrawl ? "Live Playwright Score" : "Live Friction Score"} />
-                {isComplete && auditId && (
+                <FrictionScore
+                  score={frictionScore}
+                  label={isLiveCrawl ? "Live Playwright Score" : "Live Friction Score"}
+                  isBlocked={isBlockedStatus}
+                />
+                {isFinished && auditId && (
                   <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
                     <button
                       type="button"
                       onClick={() => navigate(`/results/${auditId}`)}
-                      className="btn btn-primary"
-                      style={{ width: '100%' }}
+                      className={isBlockedStatus ? "btn btn-secondary" : "btn btn-primary"}
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                     >
-                      View Full Itemized Receipt <ArrowRight size={16} />
+                      {isBlockedStatus ? "View Blocked Audit Receipt" : "View Full Itemized Receipt"} <ArrowRight size={16} />
                     </button>
                   </div>
                 )}

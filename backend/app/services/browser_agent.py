@@ -95,6 +95,51 @@ class BrowserAgent:
         "buy"
     ]
 
+    CHALLENGE_TITLE_KEYWORDS = [
+        "just a moment...",
+        "attention required! | cloudflare",
+        "security verification | cloudflare",
+        "access denied | www.agoda.com",
+        "access denied",
+        "security check",
+        "robot check"
+    ]
+
+    CHALLENGE_BODY_KEYWORDS = [
+        "verify you are human",
+        "verify that you are human",
+        "are you human",
+        "checking your browser",
+        "confirm you are human",
+        "confirming you are not a robot",
+        "confirm you are not a robot",
+        "please solve this challenge",
+        "unusual activity detected",
+        "unusual traffic from your computer network",
+        "security check to continue",
+        "press and hold to confirm",
+        "robot check",
+        "cloudflare ray id",
+        "perimeterx"
+    ]
+
+    CHALLENGE_SELECTORS = [
+        "iframe[src*='recaptcha/api2/anchor']",
+        "iframe[src*='recaptcha/api2/bframe']",
+        "iframe[src*='challenges.cloudflare.com']",
+        "iframe[src*='turnstile']",
+        "iframe[src*='hcaptcha.com']",
+        "#cf-challenge-running",
+        "#challenge-stage",
+        "#challenge-form",
+        ".cf-turnstile",
+        ".g-recaptcha",
+        ".h-captcha",
+        "#px-captcha",
+        "[data-sitekey]",
+        "#distilIdentificationBlock"
+    ]
+
     def __init__(
         self,
         headless: Optional[bool] = None,
@@ -134,6 +179,8 @@ class BrowserAgent:
         self.step_counter: int = 0
         self.payment_detected: bool = False
         self.stopped_for_safety: bool = False
+        self.is_blocked: bool = False
+        self.block_reason: Optional[str] = None
         self.error_message: Optional[str] = None
         self.status: str = "Ready to audit"
 
@@ -195,6 +242,30 @@ class BrowserAgent:
             self.current_title = await self._page.title()
             logger.info(f"[{audit_id}] Landed on: {self.current_title} ({self.current_url})")
 
+            # Check for immediate anti-bot/security challenge on landing
+            is_challenge, challenge_reason = await self.check_security_challenge()
+            if is_challenge:
+                self.is_blocked = True
+                self.block_reason = f"Target site presented an anti-bot/security verification challenge ({challenge_reason}). VISH does not bypass security challenges, so the target could not be reliably analyzed."
+                logger.warning(f"[{audit_id}] AUDIT BLOCKED: {self.block_reason}")
+                self.status = "Audit Blocked"
+                await self._record_step(
+                    action=f"Blocked: Anti-bot Challenge ({challenge_reason})",
+                    url=self.current_url,
+                    title=self.current_title,
+                    is_challenge=True
+                )
+                return {
+                    "audit_id": self.audit_id,
+                    "target_url": self.target_url,
+                    "current_url": self.current_url,
+                    "current_title": self.current_title,
+                    "step_count": len(self.steps),
+                    "status": "Audit Blocked",
+                    "is_blocked": True,
+                    "block_reason": self.block_reason
+                }
+
             # Capture initial screenshot (Step 1)
             self.status = "Capturing screen"
             step_1 = await self._record_step(
@@ -222,14 +293,19 @@ class BrowserAgent:
     async def run_controlled_audit(self, on_status_change=None) -> List[AuditStep]:
         """
         Executes a controlled traversal of the website:
-        1. Checks for payment/purchase actions (Safety Boundary).
-        2. Inspects clickable links or navigation buttons.
-        3. Clicks safe navigation elements with pacing.
-        4. Captures screenshots up to MAX_PAGES / MAX_SCREENSHOTS.
-        5. Stops immediately if any transaction element is encountered.
+        1. Checks for anti-bot / security challenges (halts navigation if blocked).
+        2. Checks for payment/purchase actions (Safety Boundary).
+        3. Inspects clickable links or navigation buttons.
+        4. Clicks safe navigation elements with pacing.
+        5. Captures screenshots up to MAX_PAGES / MAX_SCREENSHOTS.
+        6. Stops immediately if any transaction element or security challenge is encountered.
         """
         if not self._page or self._page.is_closed():
             raise RuntimeError("Browser session not active.")
+
+        if self.is_blocked:
+            logger.warning(f"[{self.audit_id}] Already blocked by security challenge, skipping traversal.")
+            return self.steps
 
         async def update_status(new_status: str):
             self.status = new_status
@@ -238,13 +314,29 @@ class BrowserAgent:
 
         try:
             for page_index in range(2, self.max_pages + 1):
-                if self.step_counter >= self.max_screenshots or self.stopped_for_safety:
+                if self.step_counter >= self.max_screenshots or self.stopped_for_safety or self.is_blocked:
+                    break
+
+                # 1. Challenge Check
+                is_challenge, challenge_reason = await self.check_security_challenge()
+                if is_challenge:
+                    self.is_blocked = True
+                    self.block_reason = f"Target site presented an anti-bot/security verification challenge ({challenge_reason}). VISH does not bypass security challenges, so the target could not be reliably analyzed."
+                    logger.warning(f"[{self.audit_id}] AUDIT BLOCKED: {self.block_reason}")
+                    self.status = "Audit Blocked"
+                    await update_status("Audit Blocked")
+                    await self._record_step(
+                        action=f"Blocked: Anti-bot Challenge ({challenge_reason})",
+                        url=self._page.url,
+                        title=await self._page.title(),
+                        is_challenge=True
+                    )
                     break
 
                 await update_status("Checking safety boundary")
                 await asyncio.sleep(self.pacing_delay_sec)
 
-                # 1. Safety Boundary Check
+                # 2. Safety Boundary Check
                 is_payment, trigger_info = await self.check_payment_safety()
                 if is_payment:
                     logger.warning(f"[{self.audit_id}] SAFETY BOUNDARY HIT: {trigger_info}")
@@ -259,7 +351,7 @@ class BrowserAgent:
                     )
                     break
 
-                # 2. Inspect Page for Next Safe Navigation Element
+                # 3. Inspect Page for Next Safe Navigation Element
                 await update_status("Inspecting page")
                 safe_element, action_desc = await self._find_next_safe_action()
 
@@ -276,7 +368,7 @@ class BrowserAgent:
                         )
                     break
 
-                # 3. Perform Safe Interaction
+                # 4. Perform Safe Interaction
                 await update_status("Navigating")
                 logger.info(f"[{self.audit_id}] Performing safe action: {action_desc}")
                 
@@ -286,7 +378,6 @@ class BrowserAgent:
                     await asyncio.sleep(self.pacing_delay_sec)
                 except Exception as click_err:
                     logger.warning(f"[{self.audit_id}] Click timed out or intercepted: {click_err}")
-                    # Capture state anyway
                     pass
 
                 self.current_url = self._page.url
@@ -294,7 +385,23 @@ class BrowserAgent:
                 if self.current_url not in self.visited_urls:
                     self.visited_urls.append(self.current_url)
 
-                # 4. Check Safety immediately after click
+                # 5. Check Challenge immediately after click
+                is_challenge, challenge_reason = await self.check_security_challenge()
+                if is_challenge:
+                    self.is_blocked = True
+                    self.block_reason = f"Target site presented an anti-bot/security verification challenge ({challenge_reason}). VISH does not bypass security challenges, so the target could not be reliably analyzed."
+                    logger.warning(f"[{self.audit_id}] AUDIT BLOCKED POST-ACTION: {self.block_reason}")
+                    self.status = "Audit Blocked"
+                    await update_status("Audit Blocked")
+                    await self._record_step(
+                        action=f"Blocked: Anti-bot Challenge ({challenge_reason})",
+                        url=self.current_url,
+                        title=self.current_title,
+                        is_challenge=True
+                    )
+                    break
+
+                # 6. Check Safety immediately after click
                 is_payment, trigger_info = await self.check_payment_safety()
                 if is_payment:
                     self.stop_before_payment(reason=f"Post-action trigger: {trigger_info}")
@@ -308,7 +415,7 @@ class BrowserAgent:
                     )
                     break
 
-                # 5. Capture Step Screenshot
+                # 7. Capture Step Screenshot
                 await update_status("Capturing screen")
                 await self._record_step(
                     action=action_desc,
@@ -316,7 +423,8 @@ class BrowserAgent:
                     title=self.current_title
                 )
 
-            await update_status("Complete")
+            if not self.is_blocked:
+                await update_status("Complete")
             return self.steps
 
         except Exception as e:
@@ -369,6 +477,60 @@ class BrowserAgent:
             return False, ""
         except Exception as e:
             logger.warning(f"Error checking payment safety: {e}")
+            return False, ""
+
+    async def check_security_challenge(self) -> Tuple[bool, str]:
+        """
+        Scans page title, body text, and DOM elements for anti-bot / security challenge signals
+        (e.g., Cloudflare Turnstile, reCAPTCHA, PerimeterX/HUMAN, Datadome, Kasada).
+        Returns (is_challenge_detected, matched_detail).
+        """
+        if not self._page or self._page.is_closed():
+            return False, ""
+
+        try:
+            # 1. Inspect page title
+            title = ""
+            try:
+                title = (await self._page.title() or "").strip()
+            except Exception:
+                pass
+
+            title_lower = title.lower()
+            for kw in self.CHALLENGE_TITLE_KEYWORDS:
+                if kw in title_lower:
+                    return True, f"Challenge title: '{title}' matched keyword '{kw}'"
+
+            # 2. Inspect known challenge selectors / iframes / elements
+            for sel in self.CHALLENGE_SELECTORS:
+                try:
+                    el = await self._page.query_selector(sel)
+                    if el:
+                        try:
+                            vis = await el.is_visible()
+                            if vis:
+                                return True, f"Challenge element '{sel}' detected and visible"
+                        except Exception:
+                            if "challenge" in sel or "recaptcha" in sel or "turnstile" in sel:
+                                return True, f"Challenge element '{sel}' present in DOM"
+                except Exception:
+                    continue
+
+            # 3. Inspect visible text on page (body text)
+            try:
+                body_el = await self._page.query_selector("body")
+                if body_el:
+                    body_text = (await body_el.inner_text() or "").lower()
+                    body_sample = body_text[:3000]
+                    for kw in self.CHALLENGE_BODY_KEYWORDS:
+                        if kw in body_sample:
+                            return True, f"Challenge keyword '{kw}' found in page body"
+            except Exception:
+                pass
+
+            return False, ""
+        except Exception as e:
+            logger.warning(f"Error checking security challenge: {e}")
             return False, ""
 
     def stop_before_payment(self, reason: str = "Safety Boundary Triggered") -> Dict[str, Any]:
@@ -477,7 +639,8 @@ class BrowserAgent:
         url: str,
         title: Optional[str] = None,
         payment_detected: bool = False,
-        stopped_for_safety: bool = False
+        stopped_for_safety: bool = False,
+        is_challenge: bool = False
     ) -> AuditStep:
         """Helper to capture screenshot and append a new AuditStep."""
         self.step_counter += 1
@@ -494,9 +657,10 @@ class BrowserAgent:
             screenshot=filepath,
             screenshot_url=web_url,
             action=action,
-            status="Captured",
+            status="Blocked" if is_challenge else "Captured",
             payment_detected=payment_detected,
             stopped_for_safety=stopped_for_safety,
+            is_challenge=is_challenge,
             timestamp=utc_now()
         )
         self.steps.append(step)

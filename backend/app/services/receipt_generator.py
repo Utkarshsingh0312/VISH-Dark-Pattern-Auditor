@@ -235,3 +235,45 @@ class ReceiptGenerator:
             res.estimated_cost = 4.99
             res.estimated_time = 15
             return res
+
+    @staticmethod
+    def generate_blocked_receipt(
+        audit_id: str,
+        url: str,
+        audit_type: AuditType,
+        steps: List[AuditStep],
+        reason: str,
+        created_at: Optional[datetime] = None
+    ) -> AuditResult:
+        """
+        Generates an audit receipt specifically when the target site presented
+        an anti-bot or security verification challenge (e.g. Cloudflare Turnstile,
+        reCAPTCHA, PerimeterX).
+        Guarantees:
+        - Does NOT report 0/45 or 'No patterns detected' as certified.
+        - Sets is_blocked=True and clear block_reason.
+        - Preserves captured step screenshots as visual blocked evidence.
+        """
+        summary = (
+            f"[AUDIT BLOCKED] Target {url} presented an anti-bot or security verification challenge. "
+            f"VISH strictly adheres to compliance principles and does not bypass security barriers. "
+            f"Reason: {reason}"
+        )
+        return AuditResult(
+            audit_id=audit_id,
+            url=url,
+            audit_type=audit_type,
+            friction_score=0,
+            detections=[],
+            estimated_cost=0.0,
+            estimated_time=0,
+            steps=steps,
+            created_at=created_at or utc_now(),
+            completed_at=utc_now(),
+            is_demo=False,
+            is_live_crawl=True,
+            is_blocked=True,
+            block_reason=reason,
+            vision_source="blocked",
+            score_summary=summary
+        )

@@ -12,6 +12,8 @@ export function useAudit(auditId = null) {
   const [visionSource, setVisionSource] = useState('pending');
   const [paymentDetected, setPaymentDetected] = useState(false);
   const [stoppedForSafety, setStoppedForSafety] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockReason, setBlockReason] = useState(null);
   const [results, setResults] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -102,6 +104,10 @@ export function useAudit(auditId = null) {
             if (statusData.vision_source) setVisionSource(statusData.vision_source);
             if (statusData.payment_detected) setPaymentDetected(true);
             if (statusData.stopped_for_safety) setStoppedForSafety(true);
+            if (statusData.is_blocked) {
+              setIsBlocked(true);
+              if (statusData.block_reason) setBlockReason(statusData.block_reason);
+            }
 
             if (statusData.status === 'Complete') {
               clearPolling();
@@ -110,6 +116,16 @@ export function useAudit(auditId = null) {
               setFrictionScore(finalResult.friction_score);
               setDetections(finalResult.detections);
               if (finalResult.vision_source) setVisionSource(finalResult.vision_source);
+              setIsLoading(false);
+            } else if (statusData.status === 'Audit Blocked') {
+              clearPolling();
+              const finalResult = await getAuditResults(newAudit.id);
+              setResults(finalResult);
+              setFrictionScore(0);
+              setDetections([]);
+              setIsBlocked(true);
+              setBlockReason(finalResult.block_reason || statusData.block_reason);
+              setVisionSource('blocked');
               setIsLoading(false);
             } else if (statusData.status === 'Failed') {
               clearPolling();
@@ -145,10 +161,16 @@ export function useAudit(auditId = null) {
       setVisionSource(res.vision_source || 'pending');
       setPaymentDetected(res.payment_detected || false);
       setStoppedForSafety(res.stopped_for_safety || false);
+      if (res.is_blocked) {
+        setIsBlocked(true);
+        setBlockReason(res.block_reason);
+        setStatus('Audit Blocked');
+      } else {
+        setStatus('Complete');
+      }
       if (res.steps && res.steps.length > 0) {
         setLatestStep(res.steps[res.steps.length - 1]);
       }
-      setStatus('Complete');
       setStepIndex(6);
       setCurrentAuditId(id);
     } catch (err) {
@@ -173,6 +195,8 @@ export function useAudit(auditId = null) {
     visionSource,
     paymentDetected,
     stoppedForSafety,
+    isBlocked,
+    blockReason,
     results,
     isLoading,
     error,

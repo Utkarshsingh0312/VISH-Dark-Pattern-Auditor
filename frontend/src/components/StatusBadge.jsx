@@ -5,6 +5,8 @@ export default function StatusBadge({ status }) {
     switch (st) {
       case 'Complete':
         return { bg: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-emerald)', border: 'rgba(16, 185, 129, 0.3)' };
+      case 'Audit Blocked':
+        return { bg: 'rgba(245, 158, 11, 0.15)', color: 'var(--accent-amber)', border: 'rgba(245, 158, 11, 0.4)' };
       case 'Failed':
         return { bg: 'rgba(244, 63, 94, 0.15)', color: 'var(--accent-rose)', border: 'rgba(244, 63, 94, 0.3)' };
       case 'Ready to audit':
