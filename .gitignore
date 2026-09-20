@@ -60,4 +60,5 @@ Thumbs.db
 
 backend/screenshots/*.png
 !backend/screenshots/.gitkeep
+scratch/
 
