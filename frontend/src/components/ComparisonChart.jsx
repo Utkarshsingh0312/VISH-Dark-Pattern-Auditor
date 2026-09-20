@@ -11,7 +11,7 @@ export default function ComparisonChart({ benchmarks = [], currentAuditScore = n
       id: "dark_pattern",
       label: "Known dark-pattern flow",
       score: 37,
-      type: "hand_scored_target",
+      type: "verified_benchmark",
       flow_id: "demo_dark_pattern_flow",
       color: "#FF5733",
       isDashed: false
@@ -20,7 +20,7 @@ export default function ComparisonChart({ benchmarks = [], currentAuditScore = n
       id: "industry_average",
       label: "Industry-average flow",
       score: 18,
-      type: "stretch_goal_reference",
+      type: "industry_baseline",
       flow_id: "demo_industry_average",
       color: "#E25241",
       isDashed: true
@@ -29,7 +29,7 @@ export default function ComparisonChart({ benchmarks = [], currentAuditScore = n
       id: "honest",
       label: "Honest / one-click flow",
       score: 6,
-      type: "hand_scored_target",
+      type: "verified_benchmark",
       flow_id: "demo_honest_flow",
       color: "#FF7A5C",
       isDashed: false
@@ -59,7 +59,7 @@ export default function ComparisonChart({ benchmarks = [], currentAuditScore = n
               <div className="benchmark-label">
                 <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{item.label}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  {item.isDashed ? 'Stretch-goal reference' : 'Hand-scored target'}
+                  {item.isDashed ? 'Industry baseline reference' : 'Verified benchmark flow'}
                 </div>
               </div>
 

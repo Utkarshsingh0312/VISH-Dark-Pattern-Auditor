@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ComparisonChart from '../components/ComparisonChart';
 import LoadingState from '../components/LoadingState';
 import { getComparisonBenchmarks } from '../services/api';
-import { CheckCircle2, Award, Clock, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Comparison() {
@@ -42,67 +42,8 @@ export default function Comparison() {
       </div>
 
       {/* Comparison Chart */}
-      <div style={{ marginBottom: '3rem' }}>
+      <div style={{ marginBottom: '2.5rem' }}>
         <ComparisonChart benchmarks={benchmarks} />
-      </div>
-
-      {/* Two Audiences, One Engine & Architecture Roadmap */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
-        {/* MVP Targets Card */}
-        <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-            <Award size={20} color="var(--accent-coral)" />
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>
-              Core Forensic Architecture
-            </h3>
-          </div>
-          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.875rem' }}>
-            <li style={{ display: 'flex', gap: '0.6rem', color: 'var(--text-secondary)' }}>
-              <CheckCircle2 size={16} color="var(--accent-coral)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <span><strong>2 flows picked & hand-scored:</strong> Known dark-pattern (37) & Honest flow (6).</span>
-            </li>
-            <li style={{ display: 'flex', gap: '0.6rem', color: 'var(--text-secondary)' }}>
-              <CheckCircle2 size={16} color="var(--accent-coral)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <span><strong>Live Playwright agent + Vision-LLM:</strong> Tagging visible screen-by-screen.</span>
-            </li>
-            <li style={{ display: 'flex', gap: '0.6rem', color: 'var(--text-secondary)' }}>
-              <CheckCircle2 size={16} color="var(--accent-coral)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <span><strong>Friction Score engine:</strong> Published, fixed 0–45 rubric with explainable criteria.</span>
-            </li>
-            <li style={{ display: 'flex', gap: '0.6rem', color: 'var(--text-secondary)' }}>
-              <CheckCircle2 size={16} color="var(--accent-coral)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <span><strong>Receipt UI:</strong> Step-by-step receipt with contrast bar-chart comparison.</span>
-            </li>
-          </ul>
-        </div>
-
-        {/* Stretch Goals Card */}
-        <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-            <Clock size={20} color="var(--accent-blue)" />
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>
-              Stretch Goals (If Time Remains)
-            </h3>
-          </div>
-          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.875rem' }}>
-            <li style={{ display: 'flex', gap: '0.6rem', color: 'var(--text-secondary)' }}>
-              <span style={{ color: 'var(--accent-blue)', fontWeight: 700 }}>→</span>
-              <span><strong>Third flow:</strong> Industry-average flow (18) if initial two land early.</span>
-            </li>
-            <li style={{ display: 'flex', gap: '0.6rem', color: 'var(--text-secondary)' }}>
-              <span style={{ color: 'var(--accent-blue)', fontWeight: 700 }}>→</span>
-              <span><strong>Live audience URL:</strong> Judge-provided URL attempted live, best-effort.</span>
-            </li>
-            <li style={{ display: 'flex', gap: '0.6rem', color: 'var(--text-secondary)' }}>
-              <span style={{ color: 'var(--accent-blue)', fontWeight: 700 }}>→</span>
-              <span><strong>Extra dark patterns:</strong> Extended taxonomy tagging (Misdirection, Sneaking).</span>
-            </li>
-            <li style={{ display: 'flex', gap: '0.6rem', color: 'var(--text-secondary)' }}>
-              <span style={{ color: 'var(--accent-blue)', fontWeight: 700 }}>→</span>
-              <span><strong>Polish:</strong> Animated transitions on receipt and bar-chart comparisons.</span>
-            </li>
-          </ul>
-        </div>
       </div>
 
       {/* CTA to start audit */}
