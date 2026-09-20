@@ -183,6 +183,7 @@ class BrowserAgent:
         self.block_reason: Optional[str] = None
         self.error_message: Optional[str] = None
         self.status: str = "Ready to audit"
+        self.performed_actions: List[str] = []
 
         # Playwright internals
         self._playwright: Optional[Playwright] = None
@@ -206,6 +207,7 @@ class BrowserAgent:
         self.payment_detected = False
         self.stopped_for_safety = False
         self.error_message = None
+        self.performed_actions = []
 
         logger.info(f"[{audit_id}] Starting live Playwright session for {valid_url}")
 
@@ -236,6 +238,10 @@ class BrowserAgent:
             self.status = "Navigating"
             logger.info(f"[{audit_id}] Navigating to {valid_url}")
             await self._page.goto(valid_url, wait_until="domcontentloaded")
+            try:
+                await self._page.wait_for_load_state("networkidle", timeout=2500)
+            except Exception:
+                pass
             await asyncio.sleep(self.pacing_delay_sec)  # Human-like pacing
 
             self.current_url = self._page.url
@@ -375,6 +381,10 @@ class BrowserAgent:
                 try:
                     await safe_element.click(timeout=self.action_timeout_ms)
                     await self._page.wait_for_load_state("domcontentloaded", timeout=self.nav_timeout_ms)
+                    try:
+                        await self._page.wait_for_load_state("networkidle", timeout=2500)
+                    except Exception:
+                        pass
                     await asyncio.sleep(self.pacing_delay_sec)
                 except Exception as click_err:
                     logger.warning(f"[{self.audit_id}] Click timed out or intercepted: {click_err}")
@@ -571,7 +581,11 @@ class BrowserAgent:
                 if await b.is_visible():
                     txt = (await b.inner_text() or "").strip()
                     lower_txt = txt.lower()
+                    action_sig = f"btn:{lower_txt}"
+                    if action_sig in self.performed_actions:
+                        continue
                     if any(k in lower_txt for k in benign_keywords) and not any(p in lower_txt for p in self.PAYMENT_KEYWORDS):
+                        self.performed_actions.append(action_sig)
                         return b, f"Click button '{txt}'"
 
             # Then search internal anchor links
@@ -581,15 +595,20 @@ class BrowserAgent:
                     href = await link.get_attribute("href") or ""
                     txt = (await link.inner_text() or "").strip()
                     lower_txt = txt.lower()
+                    action_sig = f"link:{href or lower_txt}"
 
                     # Avoid anchor fragments and external hops
                     if href.startswith("#") or href.startswith("mailto:") or href.startswith("tel:"):
+                        continue
+
+                    if action_sig in self.performed_actions:
                         continue
                     
                     # Same domain or relative URL
                     if href.startswith("/") or current_host in href:
                         if any(k in lower_txt for k in benign_keywords) or (len(txt) > 2 and len(txt) < 30):
                             if not any(p in lower_txt for p in self.PAYMENT_KEYWORDS):
+                                self.performed_actions.append(action_sig)
                                 return link, f"Click link '{txt or href}'"
 
             return None, ""

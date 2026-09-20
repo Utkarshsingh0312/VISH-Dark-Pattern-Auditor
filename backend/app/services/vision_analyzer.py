@@ -154,7 +154,7 @@ class VisionAnalyzer:
         loop = asyncio.get_running_loop()
         
         all_candidates = [self.model_name]
-        for fallback in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-3.1-pro-preview"]:
+        for fallback in ["gemini-3.1-flash-lite", "gemini-3.6-flash", "gemini-flash-latest", "gemini-3.5-flash"]:
             if fallback not in all_candidates:
                 all_candidates.append(fallback)
 
