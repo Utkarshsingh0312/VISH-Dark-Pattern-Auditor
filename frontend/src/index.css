@@ -841,3 +841,495 @@ code, pre, .font-mono {
     width: 100%;
   }
 }
+
+/* ============================================================ */
+/* VISH FORENSIC CORE & MOTION ARCHITECTURE                   */
+/* ============================================================ */
+
+/* Dual-Column Hero Grid */
+.hero-stage-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto 3rem;
+  text-align: left;
+}
+
+.hero-left-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  z-index: 2;
+}
+
+.hero-left-content .hero-eyebrow-container {
+  justify-content: flex-start;
+}
+
+.hero-left-content .hero-description {
+  margin: 0 0 2rem 0;
+}
+
+.hero-left-content .hero-cta-group {
+  justify-content: flex-start;
+  margin-bottom: 2rem;
+}
+
+.hero-left-content .trust-signals-strip {
+  margin: 0;
+  justify-content: flex-start;
+  padding: 0.75rem 1.25rem;
+}
+
+.hero-right-stage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 480px;
+}
+
+/* 3D Forensic Core Canvas Stage */
+.forensic-core-stage {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  height: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+}
+
+.forensic-core-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 35px rgba(255, 87, 51, 0.2));
+}
+
+/* Floating Technical Evidence Labels */
+.floating-label {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  background: rgba(14, 20, 36, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  z-index: 10;
+}
+
+.label-top-left {
+  top: 18%;
+  left: 2%;
+  animation: floatSubtle1 6s ease-in-out infinite;
+}
+
+.label-top-right {
+  top: 15%;
+  right: 2%;
+  animation: floatSubtle2 7s ease-in-out infinite;
+}
+
+.label-bottom-left {
+  bottom: 20%;
+  left: 4%;
+  animation: floatSubtle2 6.5s ease-in-out infinite;
+}
+
+.label-bottom-right {
+  bottom: 18%;
+  right: 4%;
+  animation: floatSubtle1 7.5s ease-in-out infinite;
+}
+
+@keyframes floatSubtle1 {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes floatSubtle2 {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+.label-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.label-text {
+  color: #FFFFFF;
+}
+
+.core-hud-status {
+  position: absolute;
+  bottom: 4%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(9, 13, 24, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-muted);
+}
+
+.hud-beacon {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-coral);
+  box-shadow: 0 0 6px var(--accent-coral);
+  animation: pulseBeacon 2s infinite;
+}
+
+/* ============================================================ */
+/* INTERACTIVE PROCESS TRACK (01-04)                           */
+/* ============================================================ */
+
+.process-track-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Connecting animated light beam */
+.process-connecting-line {
+  position: absolute;
+  top: 52px;
+  left: 5%;
+  width: 90%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  z-index: 0;
+  overflow: hidden;
+}
+
+.process-connecting-beam {
+  position: absolute;
+  top: 0;
+  left: -20%;
+  width: 30%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, #FF5733, #38BDF8, transparent);
+  box-shadow: 0 0 10px #FF5733;
+  animation: beamTraverse 4s linear infinite;
+}
+
+@keyframes beamTraverse {
+  0% { left: -30%; }
+  100% { left: 100%; }
+}
+
+.workflow-grid-enhanced {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.workflow-step-card-enhanced {
+  background: var(--bg-surface);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem 1.4rem;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.workflow-step-card-enhanced:hover,
+.card-hover-active {
+  transform: translateY(-6px);
+  border-color: rgba(255, 87, 51, 0.4);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 87, 51, 0.15);
+}
+
+.card-top-accent-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-coral), transparent);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.workflow-step-card-enhanced:hover .card-top-accent-line {
+  opacity: 1;
+}
+
+.step-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.workflow-step-num-pill {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--accent-coral);
+  background: rgba(255, 87, 51, 0.1);
+  border: 1px solid rgba(255, 87, 51, 0.25);
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+}
+
+.step-icon-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.step-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+.step-desc {
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 1.25rem;
+  flex: 1;
+}
+
+.step-card-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 0.75rem;
+}
+
+.step-indicator-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #10B981;
+}
+
+.step-indicator-label {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+/* ============================================================ */
+/* SECTION REFINEMENTS & ANIMATED STATS                         */
+/* ============================================================ */
+
+.section-eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  color: var(--accent-coral);
+  font-weight: 700;
+  text-transform: uppercase;
+  display: inline-block;
+  margin-bottom: 0.35rem;
+}
+
+.section-heading {
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: -0.02em;
+}
+
+.section-subtext {
+  color: var(--text-secondary);
+  font-size: 0.98rem;
+  margin-top: 0.4rem;
+}
+
+.card-stat-glow {
+  background: #111726;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: 1.4rem;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.card-stat-glow:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 87, 51, 0.3);
+}
+
+.regulatory-card-elevated {
+  position: relative;
+  padding: 2.25rem;
+  background: linear-gradient(145deg, #162035 0%, #111726 100%);
+  border: 1px solid rgba(255, 87, 51, 0.25);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 25px rgba(255, 87, 51, 0.08);
+  overflow: hidden;
+}
+
+.card-ambient-light {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #FF5733, #38BDF8, transparent);
+}
+
+.table-card-elevated {
+  background: #111726;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+}
+
+.methodology-table-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s ease;
+}
+
+.methodology-table-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ============================================================ */
+/* INTERACTIVE CURSOR GLOW                                      */
+/* ============================================================ */
+
+.cursor-dot-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #FF5733;
+  box-shadow: 0 0 8px #FF5733;
+  pointer-events: none;
+  z-index: 99999;
+  transition: transform 0.06s ease-out, width 0.2s ease, height 0.2s ease, background 0.2s ease;
+}
+
+.cursor-dot-expanded {
+  width: 14px;
+  height: 14px;
+  background: #FF7A5C;
+  box-shadow: 0 0 14px #FF5733;
+  margin-top: -3px;
+  margin-left: -3px;
+}
+
+.cursor-ambient-halo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 87, 51, 0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 99998;
+  transition: transform 0.15s ease-out;
+}
+
+.cursor-halo-active {
+  background: radial-gradient(circle, rgba(255, 87, 51, 0.08) 0%, rgba(56, 189, 248, 0.03) 50%, transparent 70%);
+}
+
+/* ============================================================ */
+/* RESPONSIVE BREAKPOINTS                                       */
+/* ============================================================ */
+
+@media (max-width: 1024px) {
+  .hero-stage-grid {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 2rem;
+  }
+  
+  .hero-left-content {
+    align-items: center;
+  }
+
+  .hero-left-content .hero-eyebrow-container,
+  .hero-left-content .hero-cta-group,
+  .hero-left-content .trust-signals-strip {
+    justify-content: center;
+  }
+
+  .hero-right-stage {
+    min-height: 420px;
+  }
+
+  .workflow-grid-enhanced {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .process-connecting-line {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .workflow-grid-enhanced {
+    grid-template-columns: 1fr;
+  }
+
+  .forensic-core-stage {
+    height: 360px;
+  }
+
+  .floating-label {
+    font-size: 0.58rem;
+    padding: 0.25rem 0.5rem;
+  }
+}
+
+/* Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  .process-connecting-beam,
+  .label-top-left,
+  .label-top-right,
+  .label-bottom-left,
+  .label-bottom-right,
+  .hud-beacon {
+    animation: none !important;
+  }
+  .workflow-step-card-enhanced {
+    transition: none !important;
+  }
+  .cursor-dot-glow,
+  .cursor-ambient-halo {
+    display: none !important;
+  }
+}

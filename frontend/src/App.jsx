@@ -5,11 +5,15 @@ import Home from './pages/Home';
 import Audit from './pages/Audit';
 import Results from './pages/Results';
 import Comparison from './pages/Comparison';
+import CursorGlow from './components/CursorGlow';
 
 export default function App() {
   return (
     <BrowserRouter>
       <div className="app-container">
+        {/* Subtle desktop interactive cursor halo */}
+        <CursorGlow />
+
         <Navbar />
         <main className="main-content">
           <Routes>
