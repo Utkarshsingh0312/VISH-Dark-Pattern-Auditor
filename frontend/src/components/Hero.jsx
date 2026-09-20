@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Play, ShieldAlert, CheckCircle2, Bot, Scale, FileText } from 'lucide-react';
-import LiveAuditPreview from './LiveAuditPreview';
+import { ArrowRight, Play, ShieldAlert, Bot, Scale, FileText } from 'lucide-react';
 
 export default function Hero() {
   return (
@@ -44,11 +43,6 @@ export default function Hero() {
             <Play size={15} fill="currentColor" />
             <span>View Demo</span>
           </Link>
-        </div>
-
-        {/* Live Visual Audit Preview */}
-        <div className="hero-audit-preview-wrapper">
-          <LiveAuditPreview />
         </div>
 
         {/* Trust & Product Signals Strip */}
