@@ -81,9 +81,31 @@ code, pre, .font-mono {
   border-bottom: 1px solid var(--border-subtle);
   background-color: rgba(11, 15, 25, 0.85);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  animation: heroFadeDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.navbar.navbar-scrolled {
+  background-color: rgba(11, 15, 25, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+}
+
+.brand-icon-wrapper {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand:hover .brand-icon-wrapper {
+  box-shadow: 0 0 16px rgba(255, 87, 51, 0.4);
+  transform: scale(1.05);
 }
 
 .navbar-inner {
@@ -190,6 +212,11 @@ code, pre, .font-mono {
   box-shadow: 0 6px 22px rgba(255, 87, 51, 0.45);
 }
 
+.btn-primary:hover svg {
+  transform: translateX(4px);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .btn-secondary {
   background-color: var(--bg-surface);
   color: var(--text-primary);
@@ -199,6 +226,17 @@ code, pre, .font-mono {
 .btn-secondary:hover {
   border-color: var(--text-secondary);
   background-color: var(--bg-card);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+}
+
+.btn-secondary:hover svg {
+  transform: scale(1.12);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn:active {
+  transform: scale(0.97);
 }
 
 .btn-sm {
@@ -1286,4 +1324,110 @@ code, pre, .font-mono {
   .cursor-ambient-halo {
     display: none !important;
   }
+}
+
+
+/* ============================================================ */
+/* STAGGERED HERO ENTRANCE KEYFRAMES                            */
+/* ============================================================ */
+
+@keyframes heroFadeDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes coreScaleEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.hero-left-content .hero-eyebrow-container {
+  animation: heroFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+.hero-left-content .hero-brand-title {
+  animation: heroFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+
+.hero-left-content .hero-tagline {
+  animation: heroFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both;
+}
+
+.hero-left-content .hero-description {
+  animation: heroFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
+}
+
+.hero-left-content .hero-cta-group {
+  animation: heroFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.75s both;
+}
+
+.hero-left-content .trust-signals-strip {
+  animation: heroFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.85s both;
+}
+
+.hero-right-stage {
+  animation: coreScaleEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+}
+
+/* Tactical HUD Connectors */
+.hud-connector-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.hud-connector-line {
+  stroke: rgba(255, 255, 255, 0.14);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.hud-connector-point {
+  fill: #FFFFFF;
+}
+
+.hud-connector-point.point-coral {
+  fill: var(--accent-coral);
+  filter: drop-shadow(0 0 4px var(--accent-coral));
+}
+
+.hud-connector-point.point-blue {
+  fill: var(--accent-blue);
+  filter: drop-shadow(0 0 4px var(--accent-blue));
+}
+
+/* Subtle Cinematic Section Transition */
+.section-divider-glow {
+  width: 100%;
+  max-width: 900px;
+  height: 1px;
+  margin: 3.5rem auto;
+  background: linear-gradient(90deg, transparent, rgba(255, 87, 51, 0.25), rgba(56, 189, 248, 0.2), transparent);
 }

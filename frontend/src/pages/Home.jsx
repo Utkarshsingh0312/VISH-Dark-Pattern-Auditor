@@ -48,6 +48,8 @@ export default function Home() {
       {/* 1. Hero Section with 3D VISH Forensic Core */}
       <Hero />
 
+      <div className="section-divider-glow" />
+
       {/* 2. The Approach: Interactive 4-Step Track with Connection Beam */}
       <section className="home-section" style={{ margin: '4.5rem 0 3.5rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
@@ -64,6 +66,8 @@ export default function Home() {
 
         <InteractiveProcessTrack />
       </section>
+
+      <div className="section-divider-glow" />
 
       {/* 3. The Problem Section with Animated Forensic Metrics */}
       <section className="home-section" style={{ margin: '5rem 0' }}>
@@ -128,6 +132,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <div className="section-divider-glow" />
 
       {/* 4. The Solution & Rubric Table (PPT Page 3) */}
       <section className="home-section" style={{ margin: '5rem 0' }}>

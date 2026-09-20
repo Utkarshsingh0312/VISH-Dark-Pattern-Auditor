@@ -1,10 +1,9 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { ShieldCheck, Eye, Activity, Cpu } from 'lucide-react';
+import React, { useRef, useEffect } from 'react';
 
 export default function Hero3DCore() {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
-  const [mousePos, setMousePos] = useState({ targetX: 0, targetY: 0 });
+  const mouseRef = useRef({ targetX: 0, targetY: 0 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -17,6 +16,7 @@ export default function Hero3DCore() {
     let height = (canvas.height = 460);
     let angle = 0;
     let scanAngle = 0;
+    let isVisible = true;
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -29,11 +29,24 @@ export default function Hero3DCore() {
       height = canvas.height = size * dpr;
       canvas.style.width = `${size}px`;
       canvas.style.height = `${size}px`;
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
       ctx.scale(dpr, dpr);
     };
 
     updateDimensions();
     window.addEventListener('resize', updateDimensions);
+
+    // Pause rendering when offscreen (Performance Invariant)
+    const observer = new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting;
+      if (isVisible) {
+        lastTime = performance.now();
+      }
+    }, { threshold: 0.05 });
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
 
     // Particle nodes for forensic trace
     const numParticles = 44;
@@ -71,8 +84,14 @@ export default function Hero3DCore() {
 
     let currentMouseX = 0;
     let currentMouseY = 0;
+    let lastTime = performance.now();
 
     const render = () => {
+      if (!isVisible) {
+        animationFrameId = requestAnimationFrame(render);
+        return;
+      }
+
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const renderW = width / dpr;
       const renderH = height / dpr;
@@ -81,8 +100,8 @@ export default function Hero3DCore() {
 
       ctx.clearRect(0, 0, renderW, renderH);
 
-      currentMouseX += (mousePos.targetX - currentMouseX) * 0.05;
-      currentMouseY += (mousePos.targetY - currentMouseY) * 0.05;
+      currentMouseX += (mouseRef.current.targetX - currentMouseX) * 0.05;
+      currentMouseY += (mouseRef.current.targetY - currentMouseY) * 0.05;
 
       const rotY = prefersReducedMotion ? 0.2 : angle + currentMouseX * 0.4;
       const rotX = prefersReducedMotion ? 0.15 : Math.sin(angle * 0.5) * 0.15 + currentMouseY * 0.3;
@@ -226,20 +245,21 @@ export default function Hero3DCore() {
 
     return () => {
       window.removeEventListener('resize', updateDimensions);
+      observer.disconnect();
       cancelAnimationFrame(animationFrameId);
     };
-  }, [mousePos]);
+  }, []);
 
   const handleMouseMove = (e) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-    setMousePos({ targetX: x, targetY: y });
+    mouseRef.current = { targetX: x, targetY: y };
   };
 
   const handleMouseLeave = () => {
-    setMousePos({ targetX: 0, targetY: 0 });
+    mouseRef.current = { targetX: 0, targetY: 0 };
   };
 
   return (
@@ -251,6 +271,25 @@ export default function Hero3DCore() {
       aria-label="VISH 3D Forensic Core Visualization"
     >
       <canvas ref={canvasRef} className="forensic-core-canvas" />
+
+      {/* Tactical HUD Connector Lines to Core */}
+      <svg className="hud-connector-svg" aria-hidden="true">
+        {/* Top Left Connector */}
+        <line x1="28%" y1="24%" x2="38%" y2="36%" className="hud-connector-line" />
+        <circle cx="38%" cy="36%" r="2.5" className="hud-connector-point point-coral" />
+
+        {/* Top Right Connector */}
+        <line x1="72%" y1="21%" x2="62%" y2="35%" className="hud-connector-line" />
+        <circle cx="62%" cy="35%" r="2.5" className="hud-connector-point point-blue" />
+
+        {/* Bottom Left Connector */}
+        <line x1="26%" y1="76%" x2="38%" y2="64%" className="hud-connector-line" />
+        <circle cx="38%" cy="64%" r="2.5" className="hud-connector-point point-coral" />
+
+        {/* Bottom Right Connector */}
+        <line x1="74%" y1="78%" x2="62%" y2="65%" className="hud-connector-line" />
+        <circle cx="62%" cy="65%" r="2.5" className="hud-connector-point point-blue" />
+      </svg>
 
       {/* Floating Tactical Evidence Labels */}
       <div className="floating-label label-top-left">
