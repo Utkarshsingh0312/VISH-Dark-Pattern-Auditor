@@ -73,23 +73,6 @@ export default function Hero() {
           <Hero3DCore />
         </div>
       </div>
-
-      {/* Team Accreditation (Clean & Subtle) */}
-      <div className="hero-team-block">
-        <div className="team-intro">
-          <span className="team-intro-label">BUILT BY</span>
-          <strong className="team-brand-tag">BENEFIT BRIDGE</strong>
-        </div>
-        <div className="team-members-list">
-          <span>Utkarsh Singh</span>
-          <span className="team-dot">·</span>
-          <span>Vaishnavi Tripathi</span>
-          <span className="team-dot">·</span>
-          <span>Uday Chauhan</span>
-          <span className="team-dot">·</span>
-          <span>Tushar Agarwal</span>
-        </div>
-      </div>
     </section>
   );
 }

@@ -736,52 +736,6 @@ code, pre, .font-mono {
 }
 
 /* ============================================================ */
-/* TEAM ACCREDITATION BLOCK                                    */
-/* ============================================================ */
-
-.hero-team-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.35rem;
-  padding-top: 1rem;
-}
-
-.team-intro {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.team-intro-label {
-  font-size: 0.65rem;
-  letter-spacing: 0.15em;
-  color: var(--text-muted);
-  font-weight: 700;
-}
-
-.team-brand-tag {
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  color: var(--accent-coral);
-  font-weight: 800;
-}
-
-.team-members-list {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem;
-  font-size: 0.82rem;
-  color: var(--text-muted);
-}
-
-.team-dot {
-  opacity: 0.3;
-}
-
-/* ============================================================ */
 /* RESPONSIVENESS OVERRIDES                                     */
 /* ============================================================ */
 
