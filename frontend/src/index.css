@@ -407,3 +407,147 @@ code, pre, .font-mono {
     width: 100%;
   }
 }
+
+/* ============================================================ */
+/* VISH CINEMATIC AI SECURITY PRODUCT UPGRADE STYLES           */
+/* ============================================================ */
+
+/* Global Glows & HUD */
+.hud-corner-tl {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid var(--accent-coral);
+  border-left: 2px solid var(--accent-coral);
+  pointer-events: none;
+}
+.hud-corner-tr {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid var(--accent-coral);
+  border-right: 2px solid var(--accent-coral);
+  pointer-events: none;
+}
+.hud-corner-bl {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  width: 12px;
+  height: 12px;
+  border-bottom: 2px solid var(--accent-coral);
+  border-left: 2px solid var(--accent-coral);
+  pointer-events: none;
+}
+.hud-corner-br {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 12px;
+  height: 12px;
+  border-bottom: 2px solid var(--accent-coral);
+  border-right: 2px solid var(--accent-coral);
+  pointer-events: none;
+}
+
+/* 3D Perspective Card */
+.tilt-card-3d {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Laser Scanline Animation */
+@keyframes laserSweep {
+  0% {
+    top: 0%;
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0.2;
+  }
+}
+
+.laser-scan-line {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #FF5733, #38BDF8, #FF5733, transparent);
+  box-shadow: 0 0 15px #FF5733, 0 0 25px #38BDF8;
+  animation: laserSweep 3s linear infinite;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Floating Card Animations */
+@keyframes floatGentle1 {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -6px, 10px); }
+}
+
+@keyframes floatGentle2 {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, 6px, 12px); }
+}
+
+.float-anim-1 {
+  animation: floatGentle1 6s ease-in-out infinite;
+}
+
+.float-anim-2 {
+  animation: floatGentle2 7s ease-in-out infinite;
+}
+
+/* Pulse beacon */
+@keyframes beaconPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.pulse-beacon-inline {
+  animation: beaconPulse 2s infinite;
+}
+
+/* Accessibility: reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .laser-scan-line,
+  .float-anim-1,
+  .float-anim-2,
+  .pulse-beacon-inline {
+    animation: none !important;
+  }
+  .tilt-card-3d {
+    transform: none !important;
+  }
+}
+
+/* Scrollbar polished */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0B0F19;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E293B;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
