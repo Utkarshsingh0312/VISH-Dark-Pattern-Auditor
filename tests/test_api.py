@@ -205,6 +205,53 @@ def test_payment_safety_dom_detection(tmp_path):
             await agent.close()
     asyncio.run(run_test())
 
+def test_payment_safety_distinguishes_confirmshaming_and_marketing_copy(tmp_path):
+    """Verify Confirmshaming decline text, 'pay later', and comparative copy do not falsely trigger payment stops, but real payment controls do."""
+    async def run_test():
+        agent = BrowserAgent(
+            headless=True,
+            screenshots_dir=str(tmp_path),
+            pacing_delay_sec=0.1
+        )
+        try:
+            await agent.start_audit("https://example.com", audit_id="test_safety_non_payment")
+            
+            # Inject non-transactional confirmshaming decline links and promotional copy
+            await agent._page.evaluate("""
+                document.body.innerHTML = `
+                    <div id="modal">
+                        <h2>15% Off Your Order</h2>
+                        <button id="claim-btn">Claim the Discount</button>
+                        <a href="#" id="decline-link">No, Thanks! I'll pay full price.</a>
+                        <button id="decline-btn">No thanks, I like paying full price</button>
+                        <p>Why pay more? Pay later with Klarna available.</p>
+                    </div>
+                `;
+            """)
+            is_payment, trigger = await agent.check_payment_safety()
+            assert is_payment is False, f"Expected False for decline copy, but got True with trigger '{trigger}'"
+            assert agent.stopped_for_safety is False
+            assert agent.payment_detected is False
+
+            # Now add a genuine payment button
+            await agent._page.evaluate("""
+                document.body.innerHTML += '<button id="real-checkout">Submit Payment</button>';
+            """)
+            is_payment_real, trigger_real = await agent.check_payment_safety()
+            assert is_payment_real is True
+            assert "submit payment" in trigger_real.lower()
+
+            # Now test direct amount payment button (e.g. "Pay $15.00")
+            await agent._page.evaluate("""
+                document.body.innerHTML = '<button id="pay-amt-btn">Pay $15.00</button>';
+            """)
+            is_payment_amt, trigger_amt = await agent.check_payment_safety()
+            assert is_payment_amt is True
+            assert "pay $" in trigger_amt.lower()
+        finally:
+            await agent.close()
+    asyncio.run(run_test())
+
 # ----------------- Step 3 Gemini Vision & Scoring Tests -----------------
 
 def test_gemini_response_parsing_valid():

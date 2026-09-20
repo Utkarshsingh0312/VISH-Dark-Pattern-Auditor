@@ -92,8 +92,40 @@ class BrowserAgent:
         "buy now",
         "purchase now",
         "subscribe & pay",
-        "start paid plan",
-        "pay "
+        "start paid plan"
+    ]
+
+    # Non-transactional copy, deferral badges, or marketing comparisons that must NOT trigger payment stops
+    NON_PAYMENT_EXCLUSIONS = [
+        "pay full price",
+        "pay regular price",
+        "pay later",
+        "pay more",
+        "pay at hotel",
+        "pay at property",
+        "pay on arrival",
+        "pay on delivery",
+        "why pay",
+        "how to pay",
+        "ways to pay",
+        "learn how to pay"
+    ]
+
+    # Decline/dismissal terms on opt-in modals/confirmshaming that indicate opting out rather than paying
+    DECLINE_OPT_OUT_TERMS = [
+        "no thanks",
+        "no, thanks",
+        "not thanks",
+        "i'll pass",
+        "no discount",
+        "decline",
+        "dismiss",
+        "skip",
+        "don't want",
+        "dont want",
+        "not now",
+        "opt out",
+        "opt-out"
     ]
 
     PAYMENT_INPUT_SELECTORS = [
@@ -562,6 +594,33 @@ class BrowserAgent:
         finally:
             await self.close()
 
+    def is_payment_action_control(self, combined_text: str) -> Tuple[bool, str]:
+        """
+        Distinguishes genuine payment submission controls from ordinary text, decline links, or informational copy.
+        Returns (is_payment, matched_trigger).
+        """
+        norm = (combined_text or "").strip().lower()
+        if not norm:
+            return False, ""
+
+        # 1. Exclude decline/dismissal copy and non-transactional pricing phrases (e.g. Confirmshaming decline text, pay later, pay full price)
+        if any(term in norm for term in self.DECLINE_OPT_OUT_TERMS):
+            return False, ""
+        if any(term in norm for term in self.NON_PAYMENT_EXCLUSIONS):
+            return False, ""
+
+        # 2. Check explicit payment submission keywords
+        for term in self.PAYMENT_KEYWORDS:
+            if term in norm:
+                return True, term
+
+        # 3. Check for direct payment of a monetary amount (e.g. "Pay $49.99", "Pay 15.00", "Pay now")
+        amount_match = re.search(r"\bpay\s+(\$|€|£|¥|₹|\d|now\b|total\b|deposit\b|balance\b|order\b)", norm)
+        if amount_match:
+            return True, amount_match.group(0)
+
+        return False, ""
+
     async def check_payment_safety(self) -> Tuple[bool, str]:
         """
         Scans visible buttons, forms, and inputs for payment charge or credit card submission triggers.
@@ -590,9 +649,9 @@ class BrowserAgent:
 
                     combined = f"{text} {aria} {val} {name}"
 
-                    for term in self.PAYMENT_KEYWORDS:
-                        if term in combined:
-                            return True, f"'{term}' found in element <{text or val or aria}>"
+                    is_pay, matched_term = self.is_payment_action_control(combined)
+                    if is_pay:
+                        return True, f"'{matched_term}' found in element <{text or val or aria}>"
                 except Exception:
                     continue
 
@@ -793,7 +852,8 @@ class BrowserAgent:
                         combined_text = f"{txt} {aria}".strip().lower()
 
                         # Safety: never click payment charge triggers
-                        if any(p in combined_text for p in self.PAYMENT_KEYWORDS):
+                        is_pay, _ = self.is_payment_action_control(combined_text)
+                        if is_pay:
                             continue
 
                         # Deduplication signature
@@ -839,7 +899,8 @@ class BrowserAgent:
                                 continue
 
                         # Safety: never click payment charge triggers
-                        if any(p in combined_text for p in self.PAYMENT_KEYWORDS):
+                        is_pay, _ = self.is_payment_action_control(combined_text)
+                        if is_pay:
                             continue
 
                         # Deduplication signature

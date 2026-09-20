@@ -188,6 +188,10 @@ class VisionAnalyzer:
                             logger.warning(f"[VisionAnalyzer] Gemini ({current_model}) transient 503 spike, retrying in {wait_time}s...")
                             time.sleep(wait_time)
                             continue
+                        elif "503" in err_msg or "UNAVAILABLE" in err_msg:
+                            self._exhausted_models.add(current_model)
+                            logger.warning(f"[VisionAnalyzer] Model {current_model} unavailable (503), switching to next fallback...")
+                            break
                         elif "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
                             self._exhausted_models.add(current_model)
                             logger.warning(f"[VisionAnalyzer] Rate limit on {current_model}, backing off 4s...")

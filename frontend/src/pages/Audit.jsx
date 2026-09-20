@@ -13,7 +13,7 @@ import { ArrowRight, CheckCircle2, ShieldCheck, AlertOctagon } from 'lucide-reac
 
 export default function Audit() {
   const navigate = useNavigate();
-  const [selectedType, setSelectedType] = useState('Checkout');
+  const [selectedType, setSelectedType] = useState('Signup');
   const [testAccountProvided, setTestAccountProvided] = useState(false);
   const [targetUrl, setTargetUrl] = useState('');
 
