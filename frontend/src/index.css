@@ -604,9 +604,9 @@ code, pre, .font-mono {
 /* Hero Section Refinements */
 .hero-section-refined {
   position: relative;
-  padding: 4.5rem 1rem 3.5rem;
+  padding: 5rem 1rem 3.5rem;
   text-align: center;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .hero-ambience-glow {
@@ -650,15 +650,25 @@ code, pre, .font-mono {
   text-align: center;
 }
 
-/* Centered 3D Backdrop Behind Hero Typography */
-.hero-backdrop-3d {
+/* Centered 3D Backdrop Directly Behind VISH Title */
+.hero-title-backdrop-wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 0.85rem;
+}
+
+.hero-3d-center-stage {
   position: absolute;
-  top: 42%;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 100%;
-  max-width: 760px;
-  height: 720px;
+  width: 640px;
+  height: 640px;
+  max-width: min(640px, 92vw);
+  max-height: min(640px, 92vw);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -704,7 +714,7 @@ code, pre, .font-mono {
   line-height: 1;
   letter-spacing: -0.04em;
   color: #FFFFFF;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0;
   text-shadow: 0 4px 30px rgba(0, 0, 0, 0.9), 0 0 60px rgba(11, 15, 25, 0.95);
 }
 
@@ -924,8 +934,9 @@ code, pre, .font-mono {
 .forensic-core-stage {
   position: relative;
   width: 100%;
-  max-width: 760px;
-  height: 720px;
+  max-width: 640px;
+  height: 640px;
+  max-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1394,11 +1405,11 @@ code, pre, .font-mono {
 @keyframes coreScaleEntrance {
   0% {
     opacity: 0;
-    transform: scale(0.92);
+    transform: translate(-50%, -50%) scale(0.9);
   }
   100% {
-    opacity: 1;
-    transform: scale(1);
+    opacity: 0.68;
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
@@ -1426,7 +1437,7 @@ code, pre, .font-mono {
   animation: heroFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.85s both;
 }
 
-.hero-backdrop-3d {
+.hero-3d-center-stage {
   animation: coreScaleEntrance 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
 }
 
@@ -1468,4 +1479,36 @@ code, pre, .font-mono {
   height: 1px;
   margin: 3.5rem auto;
   background: linear-gradient(90deg, transparent, rgba(255, 87, 51, 0.25), rgba(56, 189, 248, 0.2), transparent);
+}
+
+/* Responsive Centered 3D Hero Adjustments */
+@media (max-width: 768px) {
+  .hero-3d-center-stage {
+    width: 480px;
+    height: 480px;
+    max-width: 92vw;
+    max-height: 92vw;
+  }
+  .forensic-core-stage {
+    max-width: 480px;
+    height: 480px;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-3d-center-stage {
+    width: 340px;
+    height: 340px;
+    max-width: 94vw;
+    max-height: 94vw;
+  }
+  .forensic-core-stage {
+    max-width: 340px;
+    height: 340px;
+  }
+  .floating-label,
+  .hud-connector-svg,
+  .core-hud-status {
+    display: none;
+  }
 }

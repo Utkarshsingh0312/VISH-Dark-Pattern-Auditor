@@ -12,8 +12,8 @@ export default function Hero3DCore() {
     if (!ctx) return;
 
     let animationFrameId;
-    let width = 720;
-    let height = 720;
+    let width = 640;
+    let height = 640;
     let angle = 0;
     let scanAngle = 0;
     let isVisible = true;
@@ -23,8 +23,8 @@ export default function Hero3DCore() {
     const updateDimensions = () => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      const targetSize = Math.min(Math.round(rect.width || 720), 760);
-      const size = Math.max(targetSize, 320);
+      const targetSize = Math.min(Math.round(rect.width || 640), 640);
+      const size = Math.max(targetSize, 280);
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       width = canvas.width = size * dpr;
       height = canvas.height = size * dpr;

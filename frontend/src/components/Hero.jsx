@@ -10,11 +10,6 @@ export default function Hero() {
       <div className="hero-ambience-glow" />
       <div className="hero-grid-pattern" />
 
-      {/* Centered 3D VISH Forensic Core Backdrop */}
-      <div className="hero-backdrop-3d" aria-hidden="true">
-        <Hero3DCore />
-      </div>
-
       {/* Main Centered Hero Foreground Content */}
       <div className="hero-content-wrapper">
         <div className="hero-eyebrow-container">
@@ -24,9 +19,15 @@ export default function Hero() {
           </span>
         </div>
 
-        <h1 className="hero-brand-title">
-          VISH
-        </h1>
+        {/* Centered 3D Circular Model Directly Behind VISH Title */}
+        <div className="hero-title-backdrop-wrap">
+          <div className="hero-3d-center-stage" aria-hidden="true">
+            <Hero3DCore />
+          </div>
+          <h1 className="hero-brand-title">
+            VISH
+          </h1>
+        </div>
 
         <h2 className="hero-tagline">
           Every dark pattern, <span className="text-gradient-coral">caught in the act.</span>
